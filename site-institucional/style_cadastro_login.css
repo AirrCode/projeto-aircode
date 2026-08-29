@@ -1,0 +1,130 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.formulario_lado {
+    flex: 1;
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: #100B4D;
+    padding: 60px;
+}
+
+.voltar {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+}
+
+.voltar img {
+    width: 20px;
+}
+
+.formulario {
+    width: 100%;
+    max-width: 460px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.formulario h2 {
+    color: white;
+    font-size: 32px;
+    margin-bottom: 15px;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+}
+
+.campo label {
+    color: white;
+    font-size: 14px;
+}
+
+.campo input {
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid #ffffff40;
+    font-size: 15px;
+}
+
+.campo_senha input {
+    padding-right: 45px;
+}
+
+.olho {
+    position: absolute;
+    right: 16px;
+    top: 42px;
+    color: #888888;
+    cursor: pointer;
+}
+
+.botao_entrar {
+    border: none;
+    border-radius: 8px;
+    background-color: #F5C518;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.botao_entrar:hover {
+    cursor: pointer;
+}
+
+.link_alt {
+    text-align: center;
+    color: white;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.link_alt a {
+    color: white;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.foto_lado {
+    flex: 1;
+    background: url(assets/login_cadastro/fundo_cadastro.png) no-repeat center;
+    background-size: cover;
+
+    display: flex;
+    align-items: flex-end;
+    padding: 60px;
+}
+
+.foto_conteudo img {
+    height: 150px;
+}
+
+.foto_conteudo p {
+    font-size: 28px;
+    max-width: 600px;
+}
