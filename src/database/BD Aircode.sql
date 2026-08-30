@@ -1,6 +1,14 @@
 CREATE DATABASE aircode;
 USE aircode;
 
+CREATE TABLE usuario (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR (45) NOT NULL,
+    cnpj VARCHAR(14) NOT NULL UNIQUE,
+    email VARCHAR(45) NOT NULL UNIQUE,
+    senha VARCHAR (45) NOT NULL
+);
+
 -- Companhias Aéreas
 CREATE TABLE companhia (
     id_companhia INT AUTO_INCREMENT PRIMARY KEY,

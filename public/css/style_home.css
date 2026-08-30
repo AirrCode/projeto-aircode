@@ -105,7 +105,7 @@ a {
 
 
 .page1 {
-    background: linear-gradient(90deg, rgba(8, 12, 40, 0.75), rgba(70, 60, 130, 0.35)), url(assets/home/fundo.png) no-repeat;
+    background: linear-gradient(90deg, rgba(8, 12, 40, 0.75), rgba(70, 60, 130, 0.35)), url(../assets/imgs/fundo.png) no-repeat;
     background-size: cover;
     background-position: center;
     padding-top: 80px;

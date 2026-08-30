@@ -112,7 +112,7 @@ body {
 
 .foto_lado {
     flex: 1;
-    background: url(assets/login_cadastro/fundo_cadastro.png) no-repeat center;
+    background: url(../assets/imgs/fundo_cadastro.png) no-repeat center;
     background-size: cover;
 
     display: flex;
