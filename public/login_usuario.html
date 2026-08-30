@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="assets/icon/favicon.png" type="image/png">
+    <link rel="icon" href="assets/icon/logo.png" type="image/png">
     <link rel="stylesheet" href="css/style_cadastro_login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <title>Aircode - Login</title>
@@ -37,10 +37,10 @@
                 <div class="campo campo_senha">
                     <label for="ipt_senha">Senha</label>
                     <input type="password" id="ipt_senha" placeholder="Sua senha">
-                    <i class="fa-solid fa-eye olho"></i>
+                    <i id="olho" class="fa-solid fa-eye olho"></i>
                 </div>
 
-                <button class="botao_entrar">Entrar</button>
+                <button onclick="entrar()" class="botao_entrar">Entrar</button>
                 <p class="link_alt">Não tem uma conta? <a href="cadastro_usuario.html">Cadastre-se</a></p>
             </div>
         </div>
@@ -50,3 +50,77 @@
 </body>
 
 </html>
+
+<script>
+    let olho = document.getElementById("olho");
+
+    function mostrarSenha() {
+        if (ipt_senha.type === "password") {
+            ipt_senha.type = "text";
+        } else {
+            ipt_senha.type = "password";
+        }
+    }
+
+    olho.addEventListener("click", mostrarSenha);
+
+
+    function entrar() {
+
+        var emailVar = ipt_email.value;
+        var senhaVar = ipt_senha.value;
+
+        if (emailVar == "" || senhaVar == "") {
+            div_msg.innerHTML = "Preencha todos os campos";
+            return false;
+        }
+        else {
+            setInterval(2000)
+        }
+
+        console.log("FORM LOGIN: ", emailVar);
+        console.log("FORM SENHA: ", senhaVar);
+
+        fetch("/usuarios/autenticar", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                emailServer: emailVar,
+                senhaServer: senhaVar
+            })
+        }).then(function (resposta) {
+            console.log("ESTOU NO THEN DO entrar()!")
+
+            if (resposta.ok) {
+                console.log(resposta);
+
+                resposta.json().then(json => {
+                    console.log(json);
+                    console.log(JSON.stringify(json));
+                    sessionStorage.ID_USUARIO = json.id_usuario;
+                    sessionStorage.NOME_USUARIO = json.nome;
+                    sessionStorage.EMAIL_USUARIO = json.email;
+                    sessionStorage.CNPJ_USUARIO = json.cnpj;
+
+
+                    setTimeout(function () {
+                        console.log('vou redirecionar')
+                        window.location = "index.html";
+                    }, 1000); 
+
+                });
+
+            } else {
+                console.log("Houve um erro ao tentar realizar o login!");
+                div_msg.innerHTML = "Email e/ou senha inválidos"
+            }
+
+        }).catch(function (erro) {
+            console.log(erro);
+        })
+
+        return false;
+    }
+</script>

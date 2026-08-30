@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="assets/icon/favicon.png" type="image/png">
+    <link rel="icon" href="assets/icon/logo.png" type="image/png">
     <link rel="stylesheet" href="css/style_cadastro_login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <title>Aircode - Cadastro</title>
@@ -40,16 +40,16 @@
                 <div class="campo campo_senha">
                     <label for="ipt_senha">Senha</label>
                     <input type="password" id="ipt_senha" placeholder="Sua senha">
-                    <i class="fa-solid fa-eye olho"></i>
+                    <i id="olho" class="fa-solid fa-eye olho"></i>
                 </div>
 
                 <div class="campo campo_senha">
                     <label for="ipt_senha_confirmar">Confirmar Senha</label>
                     <input type="password" id="ipt_senha_confirmar" placeholder="Confirme sua senha">
-                    <i class="fa-solid fa-eye olho"></i>
+                    <i id="olho2" class="fa-solid fa-eye olho"></i>
                 </div>
 
-                <button class="botao_entrar">Criar Conta</button>
+                <button class="botao_entrar" onclick="cadastrar()">Criar Conta</button>
                 <p class="link_alt">Já tem uma conta? <a href="login_usuario.html">Entrar</a></p>
             </div>
         </div>
@@ -66,3 +66,132 @@
 </body>
 
 </html>
+
+<script>
+    let olho = document.getElementById("olho");
+    let olho2 = document.getElementById("olho2");
+
+    function mostrarSenha(){
+        if (ipt_senha.type === "password") {
+            ipt_senha.type = "text";
+        } else {
+            ipt_senha.type = "password";
+        }
+    }
+
+    olho.addEventListener("click", mostrarSenha);
+
+    function mostrarSenha2(){
+        if (ipt_senha_confirmar.type === "password") {
+            ipt_senha_confirmar.type = "text";
+        } else {
+            ipt_senha_confirmar.type = "password";
+        }
+    }
+
+    olho2.addEventListener("click", mostrarSenha2);
+
+    function cadastrar() {
+
+        let nomeVar = ipt_nome.value
+        let emailVar = ipt_email.value
+        let cnpjVar = ipt_cnpj.value
+        let senhaVar = ipt_senha.value
+        let senha2Var = ipt_senha_confirmar.value
+        let campos = [nomeVar, emailVar, cnpjVar, senhaVar, senha2Var];
+        let temEspecial = false;
+        let especiais = "!@#$%^&*()_+-=[]{}|;:'\",.<>?/";
+
+
+        for (let i = 0; i < campos.length; i++) {
+            if (campos[i] == "") {
+                alert( 'Preencha todos os campos')
+                return false;
+            }
+        }
+
+        for (let i = 0; i < senhaVar.length; i++) {
+            if (especiais.includes(senhaVar[i])) {
+                temEspecial = true;
+                break;
+            }
+        }
+
+        if (!emailVar.includes('@') || !emailVar.includes('.')) {
+            alert("Insira um email válido")
+            return false
+
+        } else if (senhaVar.length < 8) {
+            alert("A senha deve ter no mínimo 8 caracteres")
+            return false
+
+        } else if (cnpjVar.length < 14) {
+            alert("Insira um CNPJ válido")
+            return false
+
+        } else if (senhaVar == senhaVar.toUpperCase()) {
+            alert("A senha deve ter letras minúsculas")
+            return false
+
+        } else if (senhaVar == senhaVar.toLowerCase()) {
+            alert("A senha deve ter letras maiúsculas")
+            return false
+
+        } else if (!temEspecial) {
+            alert("A senha deve ter pelo menos 1 caractere especial")
+            return false
+
+        } else if (senhaVar != senha2Var) {
+            alert("As senhas devem ser iguais")
+            return false
+
+        } else {
+            alert("Cadastro realizado com sucesso!")
+            setInterval(5000);
+        }
+
+        // Enviando o valor da nova input
+        fetch("/usuarios/cadastrar", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                // crie um atributo que recebe o valor recuperado aqui
+                // Agora vá para o arquivo routes/usuario.js
+                nomeServer: nomeVar,
+                cnpjServer: cnpjVar,
+                emailServer: emailVar,
+                senhaServer: senhaVar
+            }),
+        })
+            .then(function (resposta) {
+                console.log("resposta: ", resposta);
+
+                if (resposta.ok) {
+                    
+                    setTimeout(() => {
+                       window.location = "login_usuario.html";
+                    }, "1000")
+
+                    limparFormulario();
+                } else {
+                    alert("Email já cadastrado!")
+                    throw "Houve um erro ao tentar realizar o cadastro!";
+                }
+            })
+            .catch(function (resposta) {
+                console.log(`#ERRO: ${resposta}`);
+            });
+
+        return false;
+    }
+
+    function limparFormulario() {
+        ipt_nome.value = ''
+        ipt_email.value = ''
+        ipt_cnpj.value = ''
+        ipt_senha.value = ''
+        ipt_senha_confirmar.value = ''
+    }
+</script>
