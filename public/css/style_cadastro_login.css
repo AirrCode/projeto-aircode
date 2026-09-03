@@ -128,3 +128,47 @@ body {
     font-size: 28px;
     max-width: 600px;
 }
+
+/* TABLET*/
+@media screen and (max-width: 1024px) {
+    .formulario_lado {
+        padding: 40px 30px;
+    }
+
+    .foto_lado {
+        padding: 40px 30px;
+    }
+
+    .foto_conteudo p {
+        font-size: 22px;
+    }
+}
+
+/* CELULAR*/
+@media screen and (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    .foto_lado {
+        display: none;
+    }
+
+    .formulario_lado {
+        width: 100%;
+        min-height: 100vh;
+        padding: 80px 24px 40px;
+    }
+
+    .voltar {
+        top: 20px;
+        left: 20px;
+    }
+
+    .formulario {
+        max-width: 100%;
+    }
+
+    .formulario h2 {
+        font-size: 26px;
+    }
+}

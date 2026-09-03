@@ -298,3 +298,140 @@ a {
     color: #0C1B4D;
     font-size: 16px;
 }
+
+/* TABLETS */
+@media screen and (max-width: 1024px) {
+    header {
+        padding: 0 25px;
+    }
+
+    .navbar {
+        gap: 20px;
+        font-size: 14px;
+    }
+
+    .sobre {
+        padding: 60px 40px;
+    }
+
+    .valores {
+        padding: 50px 40px;
+        gap: 20px;
+    }
+
+    .solucoes {
+        padding: 60px 40px;
+    }
+
+    .solucoes_grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+    }
+
+    .footer {
+        padding: 50px 40px;
+    }
+}
+
+/* CELULARES */
+@media screen and (max-width: 768px) {
+header {
+        height: auto;
+        padding: 15px;
+        flex-direction: column;
+        gap: 15px;
+        position: relative; 
+    }
+
+    .logo img {
+        height: 80px;
+    }
+
+    .navbar {
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .div_botoes_header {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .page1 {
+        padding-top: 20px;
+    }
+
+    /* Seção Inicial */
+    .inicio {
+        padding: 40px 20px 60px;
+    }
+
+    .inicio h1 {
+        font-size: 32px;
+    }
+
+    .inicio p {
+        font-size: 16px;
+    }
+
+    /*SOBRE*/
+
+.sobre {
+        padding: 50px 20px;
+    }
+
+    .sobre_conteudo {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .sobre_texto h2 {
+        font-size: 24px;
+    }
+
+    .sobre_imagem {
+        margin: 20px 0 0 0;
+    }
+
+    .sobre_imagem img {
+        box-shadow: -12px -15px 0 0 #1B39D6;
+    }
+
+    /* Seção Valores */
+    .valores {
+        flex-direction: column;
+        padding: 40px 20px;
+        gap: 30px;
+    }
+
+    .divisor_valores {
+        display: none; 
+    }
+
+    /* Seção Soluções */
+    .solucoes {
+        padding: 50px 20px;
+    }
+
+    .solucoes h2 {
+        font-size: 26px;
+        margin-bottom: 35px;
+    }
+
+    .solucoes_grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    /*FOOTER*/
+    .footer {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 40px 20px;
+    }
+
+    .footer1 img {
+        height: 100px;
+    }
+}
+
