@@ -299,6 +299,30 @@ a {
     font-size: 16px;
 }
 
+.usuario_logado {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-weight: bold;
+}
+
+.usuario_logado img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+}
+
+.botao_sair {
+    border: 1px solid white;
+    background-color: transparent;
+    color: white;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
 /* TABLETS */
 @media screen and (max-width: 1024px) {
     header {

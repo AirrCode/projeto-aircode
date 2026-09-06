@@ -29,13 +29,18 @@
                     <a href="#contato">Contato</a>
                 </li>
             </ul>
-            <div class="div_botoes_header">
+            <div class="div_botoes_header" id="div_botoes_header">
                 <a href="login_usuario.html">
                     <button class="botao2">Login</button>
                 </a>
                 <a href="cadastro_usuario.html">
                     <button class="botao1">Cadastre-se</button>
                 </a>
+            </div>
+            <div class="usuario_logado" id="usuario_logado" style="display: none;">
+                <img src="assets/imgs/usuario.png" alt="">
+                <span id="nome_usuario_header"></span>
+                <button class="botao_sair" onclick="sair()">Sair</button>
             </div>
         </header>
 
@@ -219,3 +224,20 @@
 </body>
 
 </html>
+<script>
+    function verificarSessao() {
+        var nome = sessionStorage.NOME_USUARIO;
+        if (nome) {
+            document.getElementById("div_botoes_header").style.display = "none";
+            document.getElementById("nome_usuario_header").innerHTML = nome;
+            document.getElementById("usuario_logado").style.display = "flex";
+        }
+    }
+
+    function sair() {
+        sessionStorage.clear();
+        window.location = "index.html";
+    }
+
+    verificarSessao()
+</script>
