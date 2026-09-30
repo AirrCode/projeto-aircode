@@ -1,12 +1,38 @@
 CREATE DATABASE aircode;
 USE aircode;
 
+CREATE TABLE empresa (
+    id_empresa INT PRIMARY KEY AUTO_INCREMENT,
+    razao_social VARCHAR(150) NOT NULL,
+    cnpj VARCHAR(14) NOT NULL UNIQUE,
+    setor_atuacao VARCHAR(50) NOT NULL DEFAULT 'NAO INFORMADO'
+);
+
+
+-- CRUD 1: Usuários com Permissões e Preferências
 CREATE TABLE usuario (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR (45) NOT NULL,
-    cnpj VARCHAR(14) NOT NULL UNIQUE,
-    email VARCHAR(45) NOT NULL UNIQUE,
-    senha VARCHAR (45) NOT NULL
+    id_empresa INT NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    cargo VARCHAR(50) NULL,
+    nivel_acesso VARCHAR(20) NOT NULL DEFAULT 'FUNCIONARIO' CHECK (nivel_acesso IN ('ADMIN_MASTER', 'GERENTE', 'FUNCIONARIO')),
+    tema_preferido VARCHAR(10) DEFAULT 'LIGHT' CHECK (tema_preferido IN ('LIGHT', 'DARK')),
+    status_usuario BOOLEAN DEFAULT TRUE,
+    CONSTRAINT fk_usuario_empresa FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa)
+);
+
+-- CRUD 3: Alertas e Notificações
+CREATE TABLE alerta(
+    id_alerta INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    nome_alerta VARCHAR(100) NOT NULL,
+    metrica_alvo VARCHAR(50) NOT NULL, -- indicador ou estatística da aviação/hotelaria que o sistema deve ficar "vigiando".
+    valor_limite DECIMAL(10,2) NOT NULL,
+    canal_notificacao VARCHAR(20) NOT NULL CHECK (canal_notificacao IN ('EMAIL', 'SLACK', 'AMBOS')),
+    status_alerta BOOLEAN DEFAULT TRUE,
+    CONSTRAINT fk_alerta_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) 
 );
 
 -- Companhias Aéreas
@@ -110,3 +136,5 @@ JOIN rota r ON v.id_rota = r.id_rota
 JOIN aeroporto ao ON r.id_aeroporto_origem = ao.id_aeroporto
 JOIN aeroporto ad ON r.id_aeroporto_destino = ad.id_aeroporto
 GROUP BY c.nome_empresa, r.id_rota, ao.sigla_icao_iata, ad.sigla_icao_iata, v.ano, v.mes;
+
+

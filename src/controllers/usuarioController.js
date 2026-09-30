@@ -23,7 +23,7 @@ function autenticar(req, res) {
                             id_usuario: resultadoAutenticar[0].id_usuario,
                             email: resultadoAutenticar[0].email,
                             nome: resultadoAutenticar[0].nome,
-                            cnpj: resultadoAutenticar[0].cnpj
+                            cargo: resultadoAutenticar[0].cargo
                         });
                                 
                     } else if (resultadoAutenticar.length == 0) {
@@ -49,6 +49,8 @@ function cadastrar(req, res) {
     var email = req.body.emailServer;
     var senha = req.body.senhaServer;
     var cnpj = req.body.cnpjServer;
+    var razaoSocial = req.body.razaoSocialServer;
+    var cargo = req.body.cargoServer;
 
     if (nome == undefined) {
         res.status(400).send("Seu nome está undefined!");
@@ -61,10 +63,10 @@ function cadastrar(req, res) {
     } else {
 
         // Passe os valores como parâmetro e vá para o arquivo usuarioModel.js
-        usuarioModel.cadastrar(nome, email, senha, cnpj)
+        usuarioModel.cadastrar(nome, email, senha, cnpj, razaoSocial, cargo)
             .then(
                 function (resultado) {
-                    res.json(resultado);
+                    res.json({ mensagem: "Cadastro realizado com sucesso!" });
                 }
             ).catch(
                 function (erro) {

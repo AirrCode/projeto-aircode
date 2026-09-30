@@ -1,4 +1,5 @@
 var mysql = require("mysql2");
+var mysqlPromise = require("mysql2/promise");
 
 // CONEXÃO DO BANCO MYSQL SERVER
 var mySqlConfig = {
@@ -33,6 +34,30 @@ function executar(instrucao) {
     });
 }
 
+async function executarTransacao(operacoes) {
+    if (process.env.AMBIENTE_PROCESSO !== "producao" && process.env.AMBIENTE_PROCESSO !== "desenvolvimento") {
+        throw new Error("AMBIENTE NÃO CONFIGURADO EM .env");
+    }
+
+    var conexao = await mysqlPromise.createConnection(mySqlConfig);
+    try {
+        await conexao.beginTransaction();
+        var executar = async function (instrucao, valores) {
+            var [resultado] = await conexao.execute(instrucao, valores);
+            return resultado;
+        };
+        var resultado = await operacoes(executar);
+        await conexao.commit();
+        return resultado;
+    } catch (erro) {
+        await conexao.rollback();
+        throw erro;
+    } finally {
+        await conexao.end();
+    }
+}
+
 module.exports = {
-    executar
+    executar,
+    executarTransacao
 };

@@ -64,7 +64,8 @@ body {
     font-size: 14px;
 }
 
-.campo input {
+.campo input,
+.campo select {
     padding: 14px 16px;
     border-radius: 8px;
     border: 1px solid #ffffff40;
