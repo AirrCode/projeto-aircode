@@ -1,11 +1,12 @@
-CREATE DATABASE aircode;
-USE aircode;
+CREATE DATABASE IF NOT EXISTS aircodeTeste;
+USE aircodeTeste;
 
 CREATE TABLE empresa (
     id_empresa INT PRIMARY KEY AUTO_INCREMENT,
     razao_social VARCHAR(150) NOT NULL,
     cnpj VARCHAR(14) NOT NULL UNIQUE,
-    setor_atuacao VARCHAR(50) NOT NULL DEFAULT 'NAO INFORMADO'
+    setor_atuacao VARCHAR(50) NOT NULL DEFAULT 'NAO INFORMADO',
+    status_aprovacao VARCHAR(20) NOT NULL DEFAULT 'PENDENTE' CHECK (status_aprovacao IN ('PENDENTE', 'APROVADO', 'RECUSADO'))
 );
 
 
@@ -20,7 +21,7 @@ CREATE TABLE usuario (
     nivel_acesso VARCHAR(20) NOT NULL DEFAULT 'FUNCIONARIO' CHECK (nivel_acesso IN ('ADMIN_MASTER', 'GERENTE', 'FUNCIONARIO')),
     tema_preferido VARCHAR(10) DEFAULT 'LIGHT' CHECK (tema_preferido IN ('LIGHT', 'DARK')),
     status_usuario BOOLEAN DEFAULT TRUE,
-    CONSTRAINT fk_usuario_empresa FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa)
+    CONSTRAINT fk_usuario_empresa FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa) ON DELETE CASCADE
 );
 
 -- CRUD 3: Alertas e Notificações
@@ -30,9 +31,9 @@ CREATE TABLE alerta(
     nome_alerta VARCHAR(100) NOT NULL,
     metrica_alvo VARCHAR(50) NOT NULL, -- indicador ou estatística da aviação/hotelaria que o sistema deve ficar "vigiando".
     valor_limite DECIMAL(10,2) NOT NULL,
-    canal_notificacao VARCHAR(20) NOT NULL CHECK (canal_notificacao IN ('EMAIL', 'SLACK', 'AMBOS')),
+    canal_notificacao VARCHAR(20) DEFAULT 'EMAIL',
     status_alerta BOOLEAN DEFAULT TRUE,
-    CONSTRAINT fk_alerta_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) 
+    CONSTRAINT fk_alerta_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
 );
 
 -- Companhias Aéreas
@@ -43,6 +44,20 @@ CREATE TABLE companhia (
     nome_fantasia_consumidor VARCHAR(150) NULL,
     nacionalidade VARCHAR(30) DEFAULT 'BRASILEIRA',
     status_ativa BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE filtro_dashboard (
+    id_filtro INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    nome_filtro VARCHAR(100) NOT NULL,
+    uf_origem VARCHAR(2) NULL,
+    uf_destino VARCHAR(2) NULL,
+    id_companhia INT NULL,
+    ano_inicio INT NULL,
+    ano_fim INT NULL,
+    grupo_problema VARCHAR(100) NULL,
+    status_filtro BOOLEAN DEFAULT TRUE,
+    CONSTRAINT fk_filtro_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario)
 );
 
 -- Aeroportos
@@ -97,44 +112,9 @@ CREATE TABLE reclamacao (
     tempo_resposta_dias INT NULL,
     grupo_problema VARCHAR(100) NOT NULL,
     problema VARCHAR(255) NOT NULL,
-    forma_contrato VARCHAR(100) NULL,
-    situacao VARCHAR(50) NULL,
     avaliacao_reclamacao VARCHAR(30) CHECK (avaliacao_reclamacao IN ('Resolvida', 'Não Resolvida', 'Não Avaliada')),
     nota_consumidor INT CHECK (nota_consumidor BETWEEN 1 AND 5),
-    codigo_classificador_anac VARCHAR(50) NULL,
     CONSTRAINT fk_reclamacao_companhia FOREIGN KEY (id_companhia) REFERENCES companhia(id_companhia)
 );
-
-
--- VIEWS PARA INDICADORES
-
-CREATE VIEW vw_indicadores_aircode AS
-SELECT 
-    c.nome_empresa AS companhia,
-    r.id_rota,
-    ao.sigla_icao_iata AS origem,
-    ad.sigla_icao_iata AS destino,
-    v.ano,
-    v.mes,
-    -- Volume total de passageiros transportados
-    SUM(v.passageiros_pagos + v.passageiros_gratis) AS total_passageiros,
-    
-    -- Taxa média de ocupação dos voos (%)
-    ROUND(
-        CASE 
-            WHEN SUM(v.assentos_ofertados) > 0 
-            THEN (SUM(v.passageiros_pagos) / SUM(v.assentos_ofertados)) * 100 
-            ELSE 0 
-        END, 2
-    ) AS taxa_ocupacao_pct,
-    
-    -- Média de decolagens por período
-    SUM(v.decolagens) AS total_decolagens
-FROM voo_mensal v
-JOIN companhia c ON v.id_companhia = c.id_companhia
-JOIN rota r ON v.id_rota = r.id_rota
-JOIN aeroporto ao ON r.id_aeroporto_origem = ao.id_aeroporto
-JOIN aeroporto ad ON r.id_aeroporto_destino = ad.id_aeroporto
-GROUP BY c.nome_empresa, r.id_rota, ao.sigla_icao_iata, ad.sigla_icao_iata, v.ano, v.mes;
 
 

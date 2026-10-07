@@ -19,12 +19,23 @@ function autenticar(req, res) {
                     if (resultadoAutenticar.length == 1) {
                         console.log(resultadoAutenticar);
 
-                        res.json({
-                            id_usuario: resultadoAutenticar[0].id_usuario,
-                            email: resultadoAutenticar[0].email,
-                            nome: resultadoAutenticar[0].nome,
-                            cargo: resultadoAutenticar[0].cargo
-                        });
+                        var usuario = resultadoAutenticar[0];
+
+                        if (!usuario.status_usuario) {
+                            res.status(403).send("Este usuário está inativo.");
+                        } else if (usuario.status_aprovacao == "PENDENTE") {
+                            res.status(403).send("O cadastro da empresa ainda está aguardando aprovação.");
+                        } else if (usuario.status_aprovacao == "RECUSADO") {
+                            res.status(403).send("O cadastro da empresa foi recusado.");
+                        } else {
+                            res.json({
+                                id_usuario: usuario.id_usuario,
+                                email: usuario.email,
+                                nome: usuario.nome,
+                                cargo: usuario.cargo,
+                                cnpj: usuario.cnpj
+                            });
+                        }
                                 
                     } else if (resultadoAutenticar.length == 0) {
                         res.status(403).send("Email e/ou senha inválido(s)");
@@ -36,7 +47,12 @@ function autenticar(req, res) {
                 function (erro) {
                     console.log(erro);
                     console.log("\nHouve um erro ao realizar o login! Erro: ", erro.sqlMessage);
-                    res.status(500).json(erro.sqlMessage);
+                    var mensagemErro = erro.code == "ECONNREFUSED"
+                        ? "Não foi possível conectar ao banco de dados. Verifique se o MySQL está ligado."
+                        : erro.sqlMessage || erro.message || "Não foi possível realizar o login.";
+                    res.status(500).json({
+                        mensagem: mensagemErro
+                    });
                 }
             );
     }
@@ -66,7 +82,7 @@ function cadastrar(req, res) {
         usuarioModel.cadastrar(nome, email, senha, cnpj, razaoSocial, cargo)
             .then(
                 function (resultado) {
-                    res.json({ mensagem: "Cadastro realizado com sucesso!" });
+                    res.json({ mensagem: "Cadastro realizado! Aguarde a aprovação da empresa para entrar." });
                 }
             ).catch(
                 function (erro) {
@@ -75,7 +91,12 @@ function cadastrar(req, res) {
                         "\nHouve um erro ao realizar o cadastro! Erro: ",
                         erro.sqlMessage
                     );
-                    res.status(500).json(erro.sqlMessage);
+                    var mensagemErro = erro.code == "ECONNREFUSED"
+                        ? "Não foi possível conectar ao banco de dados. Verifique se o MySQL está ligado."
+                        : erro.sqlMessage || erro.message || "Não foi possível realizar o cadastro.";
+                    res.status(500).json({
+                        mensagem: mensagemErro
+                    });
                 }
             );
     }

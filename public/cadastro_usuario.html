@@ -171,12 +171,21 @@
             }),
         })
             .then(async function (resposta) {
-                let resultado = await resposta.json();
+                let textoResposta = await resposta.text();
+                let resultado = {};
+
+                if (textoResposta) {
+                    try {
+                        resultado = JSON.parse(textoResposta);
+                    } catch (erro) {
+                        resultado = { mensagem: textoResposta };
+                    }
+                }
                 if (!resposta.ok) {
                     throw new Error(resultado.mensagem || "Não foi possível realizar o cadastro.");
                 }
 
-                alert(resultado.mensagem);
+                alert(resultado.mensagem || "Cadastro realizado com sucesso!");
                 limparFormulario();
                 setTimeout(() => {
                     window.location = "login_usuario.html";
