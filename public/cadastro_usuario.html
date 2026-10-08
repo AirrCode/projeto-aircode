@@ -24,16 +24,15 @@
                 <h2>Cadastro</h2>
 
                 <div class="campo">
+                    <label for="ipt_empresa">Razão Social</label>
+                    <input type="text" id="ipt_empresa" placeholder="Razão social da empresa">
+              
                     <label for="ipt_nome">Nome Completo</label>
                     <input type="text" id="ipt_nome" placeholder="Seu nome">
-                </div>
-
-                <div class="campo">
+                
                     <label for="ipt_email">E-mail</label>
                     <input type="email" id="ipt_email" placeholder="Seu e-mail">
-                </div>
-
-                <div class="campo">
+                
                     <label for="ipt_cnpj">CNPJ</label>
                     <input type="text" id="ipt_cnpj" placeholder="Seu CNPJ">
                 </div>
@@ -42,12 +41,18 @@
                     <label for="ipt_senha">Senha</label>
                     <input type="password" id="ipt_senha" placeholder="Sua senha">
                     <i id="olho" class="fa-solid fa-eye olho"></i>
-                </div>
-
-                <div class="campo campo_senha">
+                
                     <label for="ipt_senha_confirmar">Confirmar Senha</label>
                     <input type="password" id="ipt_senha_confirmar" placeholder="Confirme sua senha">
                     <i id="olho2" class="fa-solid fa-eye olho"></i>
+                </div>
+
+                <div class="campo">
+                    <label for="ipt_cargo">Cargo</label>
+                    <select id="ipt_cargo">
+                        <option value="" selected disabled>Selecione o cargo</option>
+                        <option value="representante">Representante</option>
+                    </select>
                 </div>
 
                 <button class="botao_entrar" onclick="cadastrar()">Criar Conta</button>
@@ -94,12 +99,14 @@
 
     function cadastrar() {
 
+        let razaoSocialVar = ipt_empresa.value.trim()
         let nomeVar = ipt_nome.value
         let emailVar = ipt_email.value
-        let cnpjVar = ipt_cnpj.value
+        let cnpjVar = ipt_cnpj.value.replace(/\D/g, "")
         let senhaVar = ipt_senha.value
         let senha2Var = ipt_senha_confirmar.value
-        let campos = [nomeVar, emailVar, cnpjVar, senhaVar, senha2Var];
+        let cargoVar = ipt_cargo.value
+        let campos = [razaoSocialVar, nomeVar, emailVar, cnpjVar, senhaVar, senha2Var, cargoVar];
         let temEspecial = false;
         let especiais = "!@#$%^&*()_+-=[]{}|;:'\",.<>?/";
 
@@ -126,7 +133,7 @@
             alert("A senha deve ter no mínimo 8 caracteres")
             return false
 
-        } else if (cnpjVar.length < 14) {
+        } else if (cnpjVar.length !== 14) {
             alert("Insira um CNPJ válido")
             return false
 
@@ -146,9 +153,6 @@
             alert("As senhas devem ser iguais")
             return false
 
-        } else {
-            alert("Cadastro realizado com sucesso!")
-            setInterval(5000);
         }
 
         // Enviando o valor da nova input
@@ -158,41 +162,49 @@
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                // crie um atributo que recebe o valor recuperado aqui
-                // Agora vá para o arquivo routes/usuario.js
+                razaoSocialServer: razaoSocialVar,
                 nomeServer: nomeVar,
                 cnpjServer: cnpjVar,
                 emailServer: emailVar,
-                senhaServer: senhaVar
+                senhaServer: senhaVar,
+                cargoServer: cargoVar
             }),
         })
-            .then(function (resposta) {
-                console.log("resposta: ", resposta);
+            .then(async function (resposta) {
+                let textoResposta = await resposta.text();
+                let resultado = {};
 
-                if (resposta.ok) {
-                    
-                    setTimeout(() => {
-                       window.location = "login_usuario.html";
-                    }, "1000")
-
-                    limparFormulario();
-                } else {
-                    alert("Email já cadastrado!")
-                    throw "Houve um erro ao tentar realizar o cadastro!";
+                if (textoResposta) {
+                    try {
+                        resultado = JSON.parse(textoResposta);
+                    } catch (erro) {
+                        resultado = { mensagem: textoResposta };
+                    }
                 }
+                if (!resposta.ok) {
+                    throw new Error(resultado.mensagem || "Não foi possível realizar o cadastro.");
+                }
+
+                alert(resultado.mensagem || "Cadastro realizado com sucesso!");
+                limparFormulario();
+                setTimeout(() => {
+                    window.location = "login_usuario.html";
+                }, 1000);
             })
-            .catch(function (resposta) {
-                console.log(`#ERRO: ${resposta}`);
+            .catch(function (erro) {
+                alert(erro.message || "Não foi possível conectar ao servidor.");
             });
 
         return false;
     }
 
     function limparFormulario() {
+        ipt_empresa.value = ''
         ipt_nome.value = ''
         ipt_email.value = ''
         ipt_cnpj.value = ''
         ipt_senha.value = ''
         ipt_senha_confirmar.value = ''
+        ipt_cargo.value = ''
     }
 </script>

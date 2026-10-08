@@ -41,6 +41,7 @@
                 </div>
 
                 <button onclick="entrar()" class="botao_entrar">Entrar</button>
+                <div id="div_msg"></div>
                 <p class="link_alt">Não tem uma conta? <a href="cadastro_usuario.html">Cadastre-se</a></p>
             </div>
         </div>
@@ -114,7 +115,9 @@
 
             } else {
                 console.log("Houve um erro ao tentar realizar o login!");
-                div_msg.innerHTML = "Email e/ou senha inválidos"
+                resposta.text().then(function (mensagem) {
+                    div_msg.innerHTML = mensagem || "Email e/ou senha inválidos";
+                });
             }
 
         }).catch(function (erro) {
