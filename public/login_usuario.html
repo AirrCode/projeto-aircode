@@ -53,13 +53,14 @@
 </html>
 
 <script>
-    let olho = document.getElementById("olho");
+    const entradaSenha = document.getElementById("ipt_senha");
+    const olho = document.getElementById("olho");
 
     function mostrarSenha() {
-        if (ipt_senha.type === "password") {
-            ipt_senha.type = "text";
+        if (entradaSenha.type === "password") {
+            entradaSenha.type = "text";
         } else {
-            ipt_senha.type = "password";
+            entradaSenha.type = "password";
         }
     }
 
@@ -104,11 +105,12 @@
                     sessionStorage.NOME_USUARIO = json.nome;
                     sessionStorage.EMAIL_USUARIO = json.email;
                     sessionStorage.CNPJ_USUARIO = json.cnpj;
+                    sessionStorage.SETOR_ATUACAO = (json.setor_atuacao || '').toUpperCase() === 'HOTEL' ? 'HOTEL' : 'AGENCIA';
 
 
                     setTimeout(function () {
                         console.log('vou redirecionar')
-                        window.location = "index.html";
+                        window.location = "dashboard.html";
                     }, 1000); 
 
                 });

@@ -33,7 +33,8 @@ function autenticar(req, res) {
                                 email: usuario.email,
                                 nome: usuario.nome,
                                 cargo: usuario.cargo,
-                                cnpj: usuario.cnpj
+                                cnpj: usuario.cnpj,
+                                setor_atuacao: usuario.setor_atuacao
                             });
                         }
                                 
@@ -67,6 +68,7 @@ function cadastrar(req, res) {
     var cnpj = req.body.cnpjServer;
     var razaoSocial = req.body.razaoSocialServer;
     var cargo = req.body.cargoServer;
+    var setor = req.body.setorServer;
 
     if (nome == undefined) {
         res.status(400).send("Seu nome está undefined!");
@@ -79,7 +81,7 @@ function cadastrar(req, res) {
     } else {
 
         // Passe os valores como parâmetro e vá para o arquivo usuarioModel.js
-        usuarioModel.cadastrar(nome, email, senha, cnpj, razaoSocial, cargo)
+        usuarioModel.cadastrar(nome, email, senha, cnpj, razaoSocial, cargo, setor)
             .then(
                 function (resultado) {
                     res.json({ mensagem: "Cadastro realizado! Aguarde a aprovação da empresa para entrar." });

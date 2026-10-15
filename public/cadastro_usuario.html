@@ -34,7 +34,7 @@
                     <input type="email" id="ipt_email" placeholder="Seu e-mail">
                 
                     <label for="ipt_cnpj">CNPJ</label>
-                    <input type="text" id="ipt_cnpj" placeholder="Seu CNPJ">
+                    <input type="text" id="ipt_cnpj" placeholder="00.000.000/0000-00" maxlength="18" inputmode="numeric">
                 </div>
 
                 <div class="campo campo_senha">
@@ -48,6 +48,13 @@
                 </div>
 
                 <div class="campo">
+                    <label for="ipt_setor">Tipo de empresa</label>
+                    <select id="ipt_setor">
+                        <option value="" selected disabled>Selecione o tipo de empresa</option>
+                        <option value="AGENCIA">Agência de viagens</option>
+                        <option value="HOTEL">Hotel</option>
+                    </select>
+
                     <label for="ipt_cargo">Cargo</label>
                     <select id="ipt_cargo">
                         <option value="" selected disabled>Selecione o cargo</option>
@@ -74,28 +81,51 @@
 </html>
 
 <script>
-    let olho = document.getElementById("olho");
-    let olho2 = document.getElementById("olho2");
+    const entradaSenha = document.getElementById("ipt_senha");
+    const entradaSenhaConfirmar = document.getElementById("ipt_senha_confirmar");
+    const olho = document.getElementById("olho");
+    const olho2 = document.getElementById("olho2");
+    const entradaCnpj = document.getElementById("ipt_cnpj");
 
     function mostrarSenha(){
-        if (ipt_senha.type === "password") {
-            ipt_senha.type = "text";
+        if (entradaSenha.type === "password") {
+            entradaSenha.type = "text";
         } else {
-            ipt_senha.type = "password";
+            entradaSenha.type = "password";
         }
     }
 
     olho.addEventListener("click", mostrarSenha);
 
     function mostrarSenha2(){
-        if (ipt_senha_confirmar.type === "password") {
-            ipt_senha_confirmar.type = "text";
+        if (entradaSenhaConfirmar.type === "password") {
+            entradaSenhaConfirmar.type = "text";
         } else {
-            ipt_senha_confirmar.type = "password";
+            entradaSenhaConfirmar.type = "password";
         }
     }
 
     olho2.addEventListener("click", mostrarSenha2);
+
+    entradaCnpj.addEventListener("input", function () {
+        let numeros = entradaCnpj.value.replace(/\D/g, "").slice(0, 14);
+        let cnpjFormatado = numeros;
+
+        if (numeros.length > 2) {
+            cnpjFormatado = numeros.slice(0, 2) + "." + numeros.slice(2);
+        }
+        if (numeros.length > 5) {
+            cnpjFormatado = cnpjFormatado.slice(0, 6) + "." + numeros.slice(5);
+        }
+        if (numeros.length > 8) {
+            cnpjFormatado = cnpjFormatado.slice(0, 10) + "/" + numeros.slice(8);
+        }
+        if (numeros.length > 12) {
+            cnpjFormatado = cnpjFormatado.slice(0, 15) + "-" + numeros.slice(12);
+        }
+
+        entradaCnpj.value = cnpjFormatado;
+    });
 
     function cadastrar() {
 
@@ -106,7 +136,8 @@
         let senhaVar = ipt_senha.value
         let senha2Var = ipt_senha_confirmar.value
         let cargoVar = ipt_cargo.value
-        let campos = [razaoSocialVar, nomeVar, emailVar, cnpjVar, senhaVar, senha2Var, cargoVar];
+        let setorVar = ipt_setor.value
+        let campos = [razaoSocialVar, nomeVar, emailVar, cnpjVar, senhaVar, senha2Var, cargoVar, setorVar];
         let temEspecial = false;
         let especiais = "!@#$%^&*()_+-=[]{}|;:'\",.<>?/";
 
@@ -167,7 +198,8 @@
                 cnpjServer: cnpjVar,
                 emailServer: emailVar,
                 senhaServer: senhaVar,
-                cargoServer: cargoVar
+                cargoServer: cargoVar,
+                setorServer: setorVar
             }),
         })
             .then(async function (resposta) {
@@ -206,5 +238,6 @@
         ipt_senha.value = ''
         ipt_senha_confirmar.value = ''
         ipt_cargo.value = ''
+        ipt_setor.value = ''
     }
 </script>

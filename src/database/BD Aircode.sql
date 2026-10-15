@@ -5,7 +5,7 @@ CREATE TABLE empresa (
     id_empresa INT PRIMARY KEY AUTO_INCREMENT,
     razao_social VARCHAR(150) NOT NULL,
     cnpj VARCHAR(14) NOT NULL UNIQUE,
-    setor_atuacao VARCHAR(50) NOT NULL DEFAULT 'NAO INFORMADO',
+    setor_atuacao VARCHAR(50) NOT NULL DEFAULT 'AGENCIA',
     status_aprovacao VARCHAR(20) NOT NULL DEFAULT 'PENDENTE' CHECK (status_aprovacao IN ('PENDENTE', 'APROVADO', 'RECUSADO'))
 );
 

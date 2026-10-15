@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/icon/logo.png" type="image/png">
+    <link rel="stylesheet" href="css/style_dashboards.css">
+    <title>Aircode | Dashboard</title>
+</head>
+
+<body>
+    <header class="cabecalho_dashboard">
+        <a class="logo_dashboard" href="index.html" aria-label="Voltar para a página inicial">
+            <img src="assets/imgs/logo_texto_branco.png" alt="Aircode">
+        </a>
+
+        <div class="acoes_cabecalho">
+            <a class="botao_pagina_inicial" href="index.html">← Página inicial</a>
+            <button class="botao_relatorio" id="botao_relatorio">Gerar relatório</button>
+            <div class="perfil_usuario">
+                <div class="imagem_perfil">
+                    <img src="assets/imgs/usuario.png" alt="Imagem do usuário">
+                </div>
+                <span id="nome_usuario_dashboard" class="nome_usuario_dashboard">Aircode</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="principal_dashboard">
+        <div class="topo_dashboard">
+            <div>
+                <p class="texto_pequeno">Inteligência para o turismo</p>
+                <h1>Dashboard</h1>
+            </div>
+
+            <button class="botao_filtros" id="botao_filtros">
+                <span>⌕</span>
+                Filtros
+            </button>
+        </div>
+
+        <div class="seletor_dashboard" id="seletor_dashboard" hidden>
+            <button class="opcao_dashboard ativa" data-painel="destinos">Destinos</button>
+            <button class="opcao_dashboard" data-painel="companhias">Companhias</button>
+        </div>
+
+        <div class="aviso_filtro_ativo" id="aviso_filtro_ativo" hidden>
+            <span id="texto_filtro_ativo"></span>
+            <button class="botao_remover_filtro" id="botao_remover_filtro" type="button" aria-label="Remover filtro ativo">×</button>
+        </div>
+
+        <section id="painel_destinos" class="painel_dashboard">
+            <div class="grade_cartoes grade_cartoes_destinos">
+                <article class="cartao_indicador">
+                    <span>TOP 3 destinos</span>
+                    <strong>1º SP (590)<br>2º RJ (400)<br>3º AL (350)</strong>
+                </article>
+
+                <article class="cartao_indicador indicador_centralizado">
+                    <span>Destino com maior crescimento</span>
+                    <strong>São Paulo</strong>
+                    <small>51% comparado a dez/24 <i class="indicador_cima"></i></small>
+                </article>
+
+                <article class="cartao_indicador indicador_centralizado">
+                    <span>Faturamento do período</span>
+                    <strong>R$ 81 mil</strong>
+                    <small>Alta de 12% <i class="indicador_cima"></i></small>
+                </article>
+            </div>
+
+            <div class="grade_graficos grade_graficos_destinos">
+                <article class="cartao_grafico">
+                    <h2>Origem x destinos por estado</h2>
+                    <canvas id="grafico_origem_destino"></canvas>
+                </article>
+
+                <article class="cartao_grafico cartao_mapa">
+                    <h2>Volume de voos por estado</h2>
+                    <div id="mapa_brasil" aria-label="Mapa do Brasil com volume de voos"></div>
+                    <p id="resumo_mapa">São Paulo e Rio de Janeiro concentram a maior parte dos voos.</p>
+                </article>
+
+                <article class="cartao_grafico">
+                    <h2>Origem dos viajantes para Bahia</h2>
+                    <canvas id="grafico_origem_bahia"></canvas>
+                </article>
+            </div>
+        </section>
+
+        <section id="painel_companhias" class="painel_dashboard" hidden>
+            <div class="grade_cartoes grade_cartoes_companhias">
+                <article class="cartao_indicador indicador_centralizado">
+                    <span>Avaliação média da empresa</span>
+                    <strong>4,8/5,0</strong>
+                    <small>Melhor avaliada: GOL</small>
+                </article>
+
+                <article class="cartao_indicador indicador_centralizado">
+                    <span>Taxa de resolução</span>
+                    <strong>81% <i class="indicador_cima"></i></strong>
+                    <small>em até 5 dias · LATAM</small>
+                </article>
+
+                <article class="cartao_indicador indicador_centralizado">
+                    <span>Redução de reclamações</span>
+                    <strong>8% <i class="indicador_baixo"></i></strong>
+                    <small>comparado ao último mês</small>
+                </article>
+
+                <article class="cartao_indicador indicador_centralizado">
+                    <span>Reclamação mais frequente</span>
+                    <strong>Cancelamento</strong>
+                    <small>LATAM · dez/24</small>
+                </article>
+            </div>
+
+            <div class="grade_graficos grade_graficos_companhias">
+                <article class="cartao_grafico">
+                    <h2>Principais problemas da companhia</h2>
+                    <canvas id="grafico_problemas"></canvas>
+                </article>
+
+                <article class="cartao_grafico">
+                    <h2>Assentos ocupados por companhia</h2>
+                    <canvas id="grafico_assentos"></canvas>
+                </article>
+
+                <article class="cartao_grafico">
+                    <h2>Taxa de resolução por companhia</h2>
+                    <canvas id="grafico_resolucao"></canvas>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <div class="fundo_modal" id="modal_filtros" hidden>
+        <section class="modal_filtros" role="dialog" aria-modal="true" aria-labelledby="titulo_filtros">
+            <button class="botao_fechar" id="botao_fechar_filtros" aria-label="Fechar">×</button>
+            <p class="texto_pequeno">Filtros salvos</p>
+            <h2 id="titulo_filtros">Filtros criados</h2>
+            <a class="botao_criar_filtro" id="botao_criar_filtro" href="filtros_criacao.html?tipo=destinos">Criar</a>
+            <div id="lista_filtros" class="lista_filtros"></div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="js/bibliotecas/html2canvas.min.js"></script>
+    <script src="js/bibliotecas/jspdf.umd.min.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

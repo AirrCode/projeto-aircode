@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/icon/logo.png" type="image/png">
+    <link rel="stylesheet" href="css/style_dashboards.css">
+    <title>Aircode | Criar filtro</title>
+</head>
+
+<body>
+    <header class="cabecalho_dashboard">
+        <a class="logo_dashboard" href="index.html" aria-label="Voltar para a página inicial">
+            <img src="assets/imgs/logo_texto_branco.png" alt="Aircode">
+        </a>
+
+        <div class="acoes_cabecalho">
+            <a class="botao_pagina_inicial" href="index.html">Página inicial</a>
+            <a class="link_voltar_dashboard" href="dashboard.html">← Voltar à dashboard</a>
+            <div class="imagem_perfil">
+                <img src="assets/imgs/usuario.png" alt="Imagem do usuário">
+            </div>
+        </div>
+    </header>
+
+    <main class="principal_filtros">
+        <p class="texto_pequeno">Personalize a sua análise</p>
+        <h1 id="titulo_criacao_filtro">Filtro de destinos</h1>
+
+        <form id="formulario_filtro" class="formulario_filtro">
+            <label>
+                Nome do filtro
+                <input id="nome_filtro" type="text" value="Turistas do Sudeste - Verão" required>
+            </label>
+
+            <div class="grupo_filtros">
+                <div>
+                    <h2>Parâmetros da companhia e rota</h2>
+
+                    <label>
+                        Estado de destino (UF)
+                        <select id="estado_filtro">
+                            <option value="TODOS">Todos os estados</option>
+                            <option value="AC">Acre</option>
+                            <option value="AL">Alagoas</option>
+                            <option value="AP">Amapá</option>
+                            <option value="AM">Amazonas</option>
+                            <option value="BA">Bahia</option>
+                            <option value="CE">Ceará</option>
+                            <option value="DF">Distrito Federal</option>
+                            <option value="ES">Espírito Santo</option>
+                            <option value="GO">Goiás</option>
+                            <option value="MA">Maranhão</option>
+                            <option value="MT">Mato Grosso</option>
+                            <option value="MS">Mato Grosso do Sul</option>
+                            <option value="MG">Minas Gerais</option>
+                            <option value="PA">Pará</option>
+                            <option value="PB">Paraíba</option>
+                            <option value="PR">Paraná</option>
+                            <option value="PE">Pernambuco</option>
+                            <option value="PI">Piauí</option>
+                            <option value="RJ">Rio de Janeiro</option>
+                            <option value="RN">Rio Grande do Norte</option>
+                            <option value="RS">Rio Grande do Sul</option>
+                            <option value="RO">Rondônia</option>
+                            <option value="RR">Roraima</option>
+                            <option value="SC">Santa Catarina</option>
+                            <option value="SP">São Paulo</option>
+                            <option value="SE">Sergipe</option>
+                            <option value="TO">Tocantins</option>
+                        </select>
+                    </label>
+
+                    <label id="campo_companhia_filtro">
+                        Companhia aérea
+                        <select id="companhia_filtro">
+                            <option value="TODAS">Todas as companhias</option>
+                            <option value="LATAM">LATAM</option>
+                            <option value="GOL">GOL</option>
+                            <option value="Azul">Azul</option>
+                        </select>
+                    </label>
+
+                    <label id="campo_problema_filtro">
+                        Categoria de problema
+                        <select id="problema_filtro">
+                            <option value="TODOS">Todos os problemas</option>
+                            <option value="Atraso">Atraso</option>
+                            <option value="Cancelamento">Cancelamento</option>
+                            <option value="Extravio de bagagem">Extravio de bagagem</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div>
+                    <h2>Período e tipo de análise</h2>
+
+                    <label>
+                        Data inicial
+                        <input id="data_inicial_filtro" type="date" value="2025-01-01">
+                    </label>
+
+                    <label>
+                        Data final
+                        <input id="data_final_filtro" type="date" value="2025-12-31">
+                    </label>
+                </div>
+            </div>
+
+            <button class="botao_salvar_filtro" type="submit">Salvar filtro</button>
+        </form>
+    </main>
+
+    <script src="js/filtros.js"></script>
+</body>
+
+</html>
