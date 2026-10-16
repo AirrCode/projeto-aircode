@@ -10,6 +10,7 @@ function autenticar(email, senha) {
             u.cargo,
             u.status_usuario,
             e.cnpj,
+            e.setor_atuacao,
             e.status_aprovacao
         FROM usuario u
         JOIN empresa e ON e.id_empresa = u.id_empresa
@@ -20,11 +21,11 @@ function autenticar(email, senha) {
 }
 
 // Coloque os mesmos parâmetros aqui. Vá para a var instrucaoSql
-function cadastrar(nome, email, senha, cnpj, razaoSocial, cargo) {
+function cadastrar(nome, email, senha, cnpj, razaoSocial, cargo, setor) {
     return database.executarTransacao(async function (executar) {
         var resultadoEmpresa = await executar(
-            "INSERT INTO empresa (razao_social, cnpj) VALUES (?, ?)",
-            [razaoSocial, cnpj]
+            "INSERT INTO empresa (razao_social, cnpj, setor_atuacao) VALUES (?, ?, ?)",
+            [razaoSocial, cnpj, setor]
         );
         return executar(
             "INSERT INTO usuario (id_empresa, nome, email, senha, cargo) VALUES (?, ?, ?, ?, ?)",
