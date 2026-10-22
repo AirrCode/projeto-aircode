@@ -30,7 +30,6 @@
     <main class="principal_dashboard">
         <div class="topo_dashboard">
             <div>
-                <p class="texto_pequeno">Inteligência para o turismo</p>
                 <h1>Dashboard</h1>
             </div>
 
@@ -47,44 +46,45 @@
 
         <div class="aviso_filtro_ativo" id="aviso_filtro_ativo" hidden>
             <span id="texto_filtro_ativo"></span>
+            <button class="botao_editar_filtro_ativo" id="botao_editar_filtro" type="button">Editar filtro</button>
             <button class="botao_remover_filtro" id="botao_remover_filtro" type="button" aria-label="Remover filtro ativo">×</button>
         </div>
 
         <section id="painel_destinos" class="painel_dashboard">
             <div class="grade_cartoes grade_cartoes_destinos">
                 <article class="cartao_indicador">
-                    <span>TOP 3 destinos</span>
-                    <strong>1º SP (590)<br>2º RJ (400)<br>3º AL (350)</strong>
+                    <span id="kpi_destinos_titulo">Destinos mais procurados</span>
+                    <strong id="kpi_destinos_valor"></strong>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
-                    <span>Destino com maior crescimento</span>
-                    <strong>São Paulo</strong>
-                    <small>51% comparado a dez/24 <i class="indicador_cima"></i></small>
+                    <span>Destino com mais voos</span>
+                    <strong id="kpi_estado_destaque"></strong>
+                    <small id="kpi_estado_destaque_detalhe"></small>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
-                    <span>Faturamento do período</span>
-                    <strong>R$ 81 mil</strong>
-                    <small>Alta de 12% <i class="indicador_cima"></i></small>
+                    <span>Faturamento estimado</span>
+                    <strong id="kpi_faturamento"></strong>
+                    <small id="kpi_faturamento_detalhe"></small>
                 </article>
             </div>
 
             <div class="grade_graficos grade_graficos_destinos">
                 <article class="cartao_grafico">
-                    <h2>Origem x destinos por estado</h2>
-                    <canvas id="grafico_origem_destino"></canvas>
+                    <h2 id="titulo_grafico_origem_destino">Voos por estado</h2>
+                    <div class="area_grafico"><canvas id="grafico_origem_destino"></canvas></div>
                 </article>
 
                 <article class="cartao_grafico cartao_mapa">
-                    <h2>Volume de voos por estado</h2>
+                    <h2 id="titulo_grafico_mapa">Volume de voos por estado</h2>
                     <div id="mapa_brasil" aria-label="Mapa do Brasil com volume de voos"></div>
                     <p id="resumo_mapa">São Paulo e Rio de Janeiro concentram a maior parte dos voos.</p>
                 </article>
 
                 <article class="cartao_grafico">
-                    <h2>Origem dos viajantes para Bahia</h2>
-                    <canvas id="grafico_origem_bahia"></canvas>
+                    <h2 id="titulo_grafico_origem_bahia">Voos por companhia aérea</h2>
+                    <div class="area_grafico"><canvas id="grafico_origem_bahia"></canvas></div>
                 </article>
             </div>
         </section>
@@ -92,44 +92,44 @@
         <section id="painel_companhias" class="painel_dashboard" hidden>
             <div class="grade_cartoes grade_cartoes_companhias">
                 <article class="cartao_indicador indicador_centralizado">
-                    <span>Avaliação média da empresa</span>
-                    <strong>4,8/5,0</strong>
-                    <small>Melhor avaliada: GOL</small>
+                    <span>Avaliação média</span>
+                    <strong id="kpi_avaliacao"></strong>
+                    <small id="kpi_avaliacao_detalhe"></small>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
                     <span>Taxa de resolução</span>
-                    <strong>81% <i class="indicador_cima"></i></strong>
-                    <small>em até 5 dias · LATAM</small>
+                    <strong id="kpi_resolucao"></strong>
+                    <small id="kpi_resolucao_detalhe"></small>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
-                    <span>Redução de reclamações</span>
-                    <strong>8% <i class="indicador_baixo"></i></strong>
-                    <small>comparado ao último mês</small>
+                    <span>Total de reclamações</span>
+                    <strong id="kpi_reclamacoes"></strong>
+                    <small id="kpi_reclamacoes_detalhe"></small>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
-                    <span>Reclamação mais frequente</span>
-                    <strong>Cancelamento</strong>
-                    <small>LATAM · dez/24</small>
+                    <span>Problema mais frequente</span>
+                    <strong id="kpi_problema"></strong>
+                    <small id="kpi_problema_detalhe"></small>
                 </article>
             </div>
 
             <div class="grade_graficos grade_graficos_companhias">
                 <article class="cartao_grafico">
-                    <h2>Principais problemas da companhia</h2>
-                    <canvas id="grafico_problemas"></canvas>
+                    <h2 id="titulo_grafico_problemas">Reclamações por problema</h2>
+                    <div class="area_grafico"><canvas id="grafico_problemas"></canvas></div>
                 </article>
 
                 <article class="cartao_grafico">
-                    <h2>Assentos ocupados por companhia</h2>
-                    <canvas id="grafico_assentos"></canvas>
+                    <h2 id="titulo_grafico_assentos">Voos por companhia</h2>
+                    <div class="area_grafico"><canvas id="grafico_assentos"></canvas></div>
                 </article>
 
                 <article class="cartao_grafico">
-                    <h2>Taxa de resolução por companhia</h2>
-                    <canvas id="grafico_resolucao"></canvas>
+                    <h2 id="titulo_grafico_resolucao">Taxa de resolução por companhia</h2>
+                    <div class="area_grafico"><canvas id="grafico_resolucao"></canvas></div>
                 </article>
             </div>
         </section>

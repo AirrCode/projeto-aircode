@@ -1,18 +1,3 @@
-const dadosDashboard = {
-    destinos: {
-        estados: ['SP', 'RJ', 'AL'],
-        origens: [450, 330, 560],
-        destinos: [680, 330, 830],
-        viajantes: [5, 15, 45, 35]
-    },
-    companhias: {
-        nomes: ['LATAM', 'GOL', 'Azul'],
-        assentos: [22, 30, 21],
-        resolvidos: [57, 58, 70],
-        naoResolvidos: [43, 42, 30]
-    }
-};
-
 const graficos = {};
 const cores = {
     azul: '#1B39D6',
@@ -20,6 +5,43 @@ const cores = {
     amarelo: '#F5C518',
     cinza: '#76809c'
 };
+
+const meses = [
+    { numero: 1, dias: 31, peso: 0.78 },
+    { numero: 2, dias: 28, peso: 0.76 },
+    { numero: 3, dias: 31, peso: 0.82 },
+    { numero: 4, dias: 30, peso: 0.86 },
+    { numero: 5, dias: 31, peso: 0.91 },
+    { numero: 6, dias: 30, peso: 1.04 },
+    { numero: 7, dias: 31, peso: 1.18 },
+    { numero: 8, dias: 31, peso: 0.95 },
+    { numero: 9, dias: 30, peso: 0.87 },
+    { numero: 10, dias: 31, peso: 0.9 },
+    { numero: 11, dias: 30, peso: 0.92 },
+    { numero: 12, dias: 31, peso: 1.01 }
+];
+const companhiasBase = [
+    { nome: 'LATAM', participacao: 0.4, reclamacoes: 0.029, resolucao: 0.81, avaliacao: 4.4 },
+    { nome: 'GOL', participacao: 0.32, reclamacoes: 0.026, resolucao: 0.86, avaliacao: 4.8 },
+    { nome: 'Azul', participacao: 0.28, reclamacoes: 0.023, resolucao: 0.89, avaliacao: 4.6 }
+];
+const problemasBase = [
+    { nome: 'Cancelamento', participacao: 0.38 },
+    { nome: 'Atraso', participacao: 0.31 },
+    { nome: 'Extravio de bagagem', participacao: 0.2 },
+    { nome: 'Outros', participacao: 0.11 }
+];
+
+function obterTaxaResolucao(companhia, problema) {
+    const ajustePorProblema = {
+        'Cancelamento': -0.08,
+        'Atraso': -0.02,
+        'Extravio de bagagem': -0.14,
+        'Outros': 0.03
+    };
+    const taxa = companhia.resolucao + (ajustePorProblema[problema] || 0);
+    return Math.min(0.98, Math.max(0.55, taxa));
+}
 
 const estadosBrasil = [
     ['BR-AC', 'Acre', 18], ['BR-AL', 'Alagoas', 350], ['BR-AP', 'Amapá', 12],
@@ -34,9 +56,151 @@ const estadosBrasil = [
     ['BR-TO', 'Tocantins', 28]
 ];
 
+function criarDadosDeVoos() {
+    const dados = [];
+    const somaPesosMeses = meses.reduce(function (total, mes) {
+        return total + mes.peso;
+    }, 0);
+
+    estadosBrasil.forEach(function (estado) {
+        meses.forEach(function (mes) {
+            companhiasBase.forEach(function (companhia) {
+                const voos = estado[2] * (mes.peso / somaPesosMeses) * companhia.participacao;
+                dados.push({
+                    estado: estado[0].replace('BR-', ''),
+                    nomeEstado: estado[1],
+                    mes: mes,
+                    companhia: companhia.nome,
+                    voos: voos
+                });
+            });
+        });
+    });
+
+    return dados;
+}
+
+const dadosDeVoos = criarDadosDeVoos();
+
+function obterFracaoDoMes(mes, filtro) {
+    if (!filtro || (!filtro.dataInicial && !filtro.dataFinal)) {
+        return 1;
+    }
+
+    const inicioMes = new Date(2025, mes.numero - 1, 1);
+    const fimMes = new Date(2025, mes.numero, 0);
+    const inicioFiltro = filtro.dataInicial ? new Date(`${filtro.dataInicial}T00:00:00`) : inicioMes;
+    const fimFiltro = filtro.dataFinal ? new Date(`${filtro.dataFinal}T23:59:59`) : fimMes;
+    const inicio = inicioFiltro > inicioMes ? inicioFiltro : inicioMes;
+    const fim = fimFiltro < fimMes ? fimFiltro : fimMes;
+
+    if (inicio > fim) {
+        return 0;
+    }
+
+    const diasIncluidos = Math.floor((fim - inicio) / 86400000) + 1;
+    return diasIncluidos / mes.dias;
+}
+
+function obterDadosDeVoosFiltrados(tipoPainel) {
+    const filtro = obterFiltroAtual(tipoPainel);
+
+    return dadosDeVoos.filter(function (linha) {
+        const estadoCombina = !filtro || filtro.estado === 'TODOS' || filtro.estado === linha.estado;
+        const companhiaCombina = !filtro || filtro.companhia === 'TODAS' || filtro.companhia === linha.companhia;
+        return estadoCombina && companhiaCombina && obterFracaoDoMes(linha.mes, filtro) > 0;
+    }).map(function (linha) {
+        return {
+            estado: linha.estado,
+            nomeEstado: linha.nomeEstado,
+            mes: linha.mes,
+            companhia: linha.companhia,
+            voos: linha.voos * obterFracaoDoMes(linha.mes, filtro)
+        };
+    });
+}
+
+function obterDadosDeReclamacoes(tipoPainel) {
+    const filtro = obterFiltroAtual(tipoPainel);
+    const dadosFiltrados = obterDadosDeVoosFiltrados(tipoPainel);
+    const dados = [];
+
+    dadosFiltrados.forEach(function (linha) {
+        const companhia = companhiasBase.find(function (item) {
+            return item.nome === linha.companhia;
+        });
+        const totalReclamacoes = linha.voos * companhia.reclamacoes;
+
+        problemasBase.forEach(function (problema) {
+            const combinaProblema = !filtro || filtro.problema === 'TODOS' || filtro.problema === problema.nome;
+            if (combinaProblema) {
+                dados.push({
+                    estado: linha.estado,
+                    mes: linha.mes,
+                    companhia: linha.companhia,
+                    problema: problema.nome,
+                    quantidade: totalReclamacoes * problema.participacao
+                });
+            }
+        });
+    });
+
+    return dados;
+}
+
+function formatarQuantidade(numero) {
+    const casasDecimais = numero > 0 && numero < 10 ? 1 : 0;
+    return numero.toLocaleString('pt-BR', {
+        minimumFractionDigits: casasDecimais,
+        maximumFractionDigits: casasDecimais
+    });
+}
+
+function formatarReais(valor) {
+    return valor.toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        maximumFractionDigits: 0
+    });
+}
+
+function somarPor(dados, chave, valor) {
+    return dados.reduce(function (resultado, linha) {
+        resultado[linha[chave]] = (resultado[linha[chave]] || 0) + linha[valor];
+        return resultado;
+    }, {});
+}
+
+function obterPercentualResolucao(companhia, dadosReclamacoes) {
+    const reclamacoes = dadosReclamacoes.filter(function (linha) {
+        return linha.companhia === companhia.nome;
+    });
+    const total = reclamacoes.reduce(function (soma, linha) {
+        return soma + linha.quantidade;
+    }, 0);
+
+    if (!total) {
+        return companhia.resolucao * 100;
+    }
+
+    const resolvidas = reclamacoes.reduce(function (soma, linha) {
+        return soma + (linha.quantidade * obterTaxaResolucao(companhia, linha.problema));
+    }, 0);
+    return (resolvidas / total) * 100;
+}
+
+function obterFiltroAtual(tipoPainel) {
+    return JSON.parse(localStorage.getItem(`filtro_atual_${tipoPainel}`) || 'null');
+}
+
+function obterTotalVoos(dados) {
+    return dados.reduce(function (total, linha) {
+        return total + linha.voos;
+    }, 0);
+}
+
 function criarGrafico(id, tipo, dados, opcoes = {}) {
     const elemento = document.getElementById(id);
-
     if (!elemento || typeof Chart === 'undefined') {
         return;
     }
@@ -54,21 +218,22 @@ function criarGrafico(id, tipo, dados, opcoes = {}) {
             plugins: {
                 legend: {
                     labels: {
-                        color: cores.marinho
+                        color: cores.marinho,
+                        usePointStyle: true,
+                        boxWidth: 10,
+                        padding: 16
                     }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: {
-                        color: '#dfe2eb'
-                    }
+                    grid: { color: '#e3e7ef' },
+                    ticks: { color: cores.cinza }
                 },
                 x: {
-                    grid: {
-                        display: false
-                    }
+                    grid: { display: false },
+                    ticks: { color: cores.cinza }
                 }
             },
             ...opcoes
@@ -76,11 +241,138 @@ function criarGrafico(id, tipo, dados, opcoes = {}) {
     });
 }
 
-function obterFiltroAtual(tipoPainel) {
-    return JSON.parse(localStorage.getItem(`filtro_atual_${tipoPainel}`) || 'null');
+function definirTexto(id, texto) {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+        elemento.textContent = texto;
+    }
+}
+
+function obterTextoDoPeriodo(filtro) {
+    if (!filtro || (!filtro.dataInicial && !filtro.dataFinal)) {
+        return 'Todo o período disponível';
+    }
+
+    const inicio = filtro.dataInicial
+        ? new Date(`${filtro.dataInicial}T00:00:00`).toLocaleDateString('pt-BR')
+        : 'início';
+    const fim = filtro.dataFinal
+        ? new Date(`${filtro.dataFinal}T00:00:00`).toLocaleDateString('pt-BR')
+        : 'hoje';
+    return `${inicio} a ${fim}`;
+}
+
+function atualizarIndicadoresDestinos(dadosVoos) {
+    const filtro = obterFiltroAtual(obterPainelAtual());
+    const totaisEstado = somarPor(dadosVoos, 'estado', 'voos');
+    const estadosOrdenados = Object.keys(totaisEstado).sort(function (a, b) {
+        return totaisEstado[b] - totaisEstado[a];
+    });
+    const topTres = estadosOrdenados.slice(0, 3);
+    const melhorEstado = estadosOrdenados[0];
+    const totalVoos = obterTotalVoos(dadosVoos);
+    const nomeEstadoDestaque = estadosBrasil.find(function (estado) {
+        return estado[0] === `BR-${melhorEstado}`;
+    });
+
+    definirTexto('kpi_destinos_titulo', topTres.length ? 'Destinos mais procurados' : 'Destinos no período');
+    definirTexto('kpi_destinos_valor', topTres.length
+        ? topTres.map(function (estado, indice) {
+            return `${indice + 1}º ${estado} (${formatarQuantidade(totaisEstado[estado])})`;
+        }).join(' · ')
+        : 'Sem dados para este filtro');
+    definirTexto('kpi_estado_destaque', nomeEstadoDestaque ? nomeEstadoDestaque[1] : 'Sem dados');
+    definirTexto('kpi_estado_destaque_detalhe', `${formatarQuantidade(totaisEstado[melhorEstado] || 0)} voos no período`);
+    definirTexto('kpi_faturamento', formatarReais(totalVoos * 350));
+    definirTexto('kpi_faturamento_detalhe', `${formatarQuantidade(totalVoos)} voos · R$ 350 por voo · ${obterTextoDoPeriodo(filtro)}`);
+}
+
+function atualizarIndicadoresCompanhias(dadosVoos, dadosReclamacoes) {
+    const filtro = obterFiltroAtual(obterPainelAtual());
+    const totaisPorCompanhia = somarPor(dadosVoos, 'companhia', 'voos');
+    const reclamacoesPorCompanhia = somarPor(dadosReclamacoes, 'companhia', 'quantidade');
+    const reclamacoesPorProblema = somarPor(dadosReclamacoes, 'problema', 'quantidade');
+    const companhiasVisiveis = Object.keys(totaisPorCompanhia);
+    const totalReclamacoes = Object.values(reclamacoesPorCompanhia).reduce(function (total, valor) {
+        return total + valor;
+    }, 0);
+    let pesoAvaliacoes = 0;
+    let totalAvaliacoes = 0;
+    let totalResolvidas = 0;
+
+    companhiasVisiveis.forEach(function (nome) {
+        const companhia = companhiasBase.find(function (item) {
+            return item.nome === nome;
+        });
+        pesoAvaliacoes += companhia.avaliacao * (totaisPorCompanhia[nome] || 0);
+        totalAvaliacoes += totaisPorCompanhia[nome] || 0;
+        dadosReclamacoes.filter(function (linha) {
+            return linha.companhia === nome;
+        }).forEach(function (linha) {
+            totalResolvidas += linha.quantidade * obterTaxaResolucao(companhia, linha.problema);
+        });
+    });
+
+    const problemaMaisFrequente = Object.keys(reclamacoesPorProblema).sort(function (a, b) {
+        return reclamacoesPorProblema[b] - reclamacoesPorProblema[a];
+    })[0];
+
+    definirTexto('kpi_avaliacao', totalAvaliacoes ? `${(pesoAvaliacoes / totalAvaliacoes).toFixed(1).replace('.', ',')}/5` : '—');
+    const textoCompanhias = companhiasVisiveis.length === 1 ? '1 companhia' : `${companhiasVisiveis.length} companhias`;
+    definirTexto('kpi_avaliacao_detalhe', `${textoCompanhias} · ${obterTextoDoPeriodo(filtro)}`);
+    definirTexto('kpi_resolucao', totalReclamacoes ? `${Math.round((totalResolvidas / totalReclamacoes) * 100)}%` : '—');
+    definirTexto('kpi_resolucao_detalhe', totalReclamacoes ? 'das reclamações estimadas foram resolvidas' : 'Sem reclamações neste período');
+    definirTexto('kpi_reclamacoes', formatarQuantidade(totalReclamacoes));
+    definirTexto('kpi_reclamacoes_detalhe', `estimativa · ${obterTextoDoPeriodo(filtro)}`);
+    definirTexto('kpi_problema', problemaMaisFrequente || 'Sem dados');
+    definirTexto('kpi_problema_detalhe', problemaMaisFrequente
+        ? `${formatarQuantidade(reclamacoesPorProblema[problemaMaisFrequente])} reclamações estimadas`
+        : 'Nenhuma reclamação para este filtro');
+}
+
+function atualizarTitulos(tipoPainel) {
+    const filtro = obterFiltroAtual(tipoPainel);
+    const partesVoos = [];
+    const partesReclamacoes = [];
+
+    if (filtro && filtro.estado !== 'TODOS') {
+        partesVoos.push(obterNomeEstado(filtro.estado));
+        partesReclamacoes.push(obterNomeEstado(filtro.estado));
+    }
+    if (tipoPainel === 'companhias' && filtro && filtro.companhia !== 'TODAS') {
+        partesVoos.push(filtro.companhia);
+        partesReclamacoes.push(filtro.companhia);
+    }
+    if (tipoPainel === 'companhias' && filtro && filtro.problema !== 'TODOS') {
+        partesReclamacoes.push(filtro.problema);
+    }
+    const periodo = obterTextoDoPeriodo(filtro);
+    const contextoVoos = filtro
+        ? ` · ${partesVoos.concat(periodo).join(' · ')}`
+        : '';
+    const contextoReclamacoes = filtro
+        ? ` · ${partesReclamacoes.concat(periodo).join(' · ')}`
+        : '';
+
+    definirTexto('titulo_grafico_origem_destino', `Voos por estado${contextoVoos}`);
+    definirTexto('titulo_grafico_mapa', `Volume de voos${contextoVoos}`);
+    definirTexto('titulo_grafico_origem_bahia', `Voos por companhia${contextoVoos}`);
+    definirTexto('titulo_grafico_problemas', filtro && filtro.problema !== 'TODOS'
+        ? `Reclamações por companhia${contextoReclamacoes}`
+        : `Reclamações por problema${contextoReclamacoes}`);
+    definirTexto('titulo_grafico_assentos', `Voos por companhia${contextoVoos}`);
+    definirTexto('titulo_grafico_resolucao', `Taxa de resolução${contextoReclamacoes}`);
 }
 
 function renderizarGraficos() {
+    const tipoPainel = obterPainelAtual();
+    const dadosVoos = obterDadosDeVoosFiltrados(tipoPainel);
+    const dadosReclamacoes = obterDadosDeReclamacoes(tipoPainel);
+    const filtro = obterFiltroAtual(tipoPainel);
+    atualizarTitulos(tipoPainel);
+    atualizarIndicadoresDestinos(dadosVoos);
+    atualizarIndicadoresCompanhias(dadosVoos, dadosReclamacoes);
+
     if (typeof Chart === 'undefined') {
         document.querySelectorAll('canvas').forEach(function (canvas) {
             canvas.replaceWith('Não foi possível carregar o gráfico agora.');
@@ -88,118 +380,156 @@ function renderizarGraficos() {
         return;
     }
 
-    const destinos = dadosDashboard.destinos;
-    const filtroDestinos = obterFiltroAtual('destinos');
-    let estadosDestino = destinos.estados;
-    let valoresOrigem = destinos.origens;
-    let valoresDestino = destinos.destinos;
-
-    if (filtroDestinos && filtroDestinos.estado !== 'TODOS') {
-        const estadoFiltrado = estadosBrasil.find(function (estado) {
-            return estado[0] === `BR-${filtroDestinos.estado}`;
-        });
-
-        if (estadoFiltrado) {
-            estadosDestino = [filtroDestinos.estado];
-            valoresOrigem = [Math.round(estadoFiltrado[2] * 0.65)];
-            valoresDestino = [estadoFiltrado[2]];
-        }
-    }
+    const voosPorEstado = somarPor(dadosVoos, 'estado', 'voos');
+    const estadosOrdenados = Object.keys(voosPorEstado).sort(function (a, b) {
+        return voosPorEstado[b] - voosPorEstado[a];
+    }).slice(0, 8);
+    const voosPorCompanhia = somarPor(dadosVoos, 'companhia', 'voos');
+    const reclamacoesPorCompanhia = somarPor(dadosReclamacoes, 'companhia', 'quantidade');
+    const reclamacoesPorProblema = somarPor(dadosReclamacoes, 'problema', 'quantidade');
+    const estadosLabel = estadosOrdenados.map(function (codigo) {
+        return codigo;
+    });
+    const voosEstado = estadosOrdenados.map(function (codigo) {
+        return voosPorEstado[codigo];
+    });
 
     criarGrafico('grafico_origem_destino', 'bar', {
-        labels: estadosDestino,
-        datasets: [
-            { label: 'Origem', data: valoresOrigem, backgroundColor: cores.cinza },
-            { label: 'Destino', data: valoresDestino, backgroundColor: cores.marinho }
-        ]
+        labels: estadosLabel,
+        datasets: [{
+            label: 'Voos',
+            data: voosEstado,
+            backgroundColor: cores.marinho,
+            borderRadius: 5,
+            maxBarThickness: 44
+        }]
+    }, {
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function (contexto) {
+                        return `${formatarQuantidade(contexto.raw)} voos`;
+                    }
+                }
+            }
+        }
     });
 
     criarGrafico('grafico_origem_bahia', 'doughnut', {
-        labels: ['Outros', 'Minas Gerais', 'São Paulo', 'Rio de Janeiro'],
-        datasets: [
-            { data: destinos.viajantes, backgroundColor: ['#555e79', cores.marinho, cores.azul, '#b9bfd0'] }
-        ]
+        labels: companhiasBase.map(function (companhia) { return companhia.nome; }),
+        datasets: [{
+            data: companhiasBase.map(function (companhia) {
+                return voosPorCompanhia[companhia.nome] || 0;
+            }),
+            backgroundColor: [cores.marinho, cores.azul, cores.amarelo],
+            borderColor: '#f5f6fa',
+            borderWidth: 3
+        }]
     }, {
+        cutout: '58%',
         scales: {
-            y: { display: false },
-            x: { display: false }
+            x: { display: false },
+            y: { display: false }
+        },
+        plugins: {
+            legend: { position: 'bottom' }
         }
     });
 
-    const companhias = dadosDashboard.companhias;
-    const filtroCompanhias = obterFiltroAtual('companhias');
-    let nomesCompanhias = companhias.nomes;
-    let valoresAssentos = companhias.assentos;
-    let valoresResolvidos = companhias.resolvidos;
-    let valoresNaoResolvidos = companhias.naoResolvidos;
+    const companhiasSelecionadas = companhiasBase.filter(function (companhia) {
+        return (voosPorCompanhia[companhia.nome] || 0) > 0;
+    });
+    const problemaSelecionado = filtro && filtro.problema !== 'TODOS';
+    const problemas = problemaSelecionado ? [filtro.problema] : problemasBase.map(function (problema) {
+        return problema.nome;
+    });
+    const valoresProblemas = problemas.map(function (problema) {
+        return reclamacoesPorProblema[problema] || 0;
+    });
 
-    if (filtroCompanhias && filtroCompanhias.companhia !== 'TODAS') {
-        const indiceCompanhia = companhias.nomes.indexOf(filtroCompanhias.companhia);
-
-        if (indiceCompanhia >= 0) {
-            nomesCompanhias = [companhias.nomes[indiceCompanhia]];
-            valoresAssentos = [companhias.assentos[indiceCompanhia]];
-            valoresResolvidos = [companhias.resolvidos[indiceCompanhia]];
-            valoresNaoResolvidos = [companhias.naoResolvidos[indiceCompanhia]];
-        }
-    }
-
-    const problemas = {
-        'Cancelamento': 55,
-        'Atraso': 25,
-        'Extravio de bagagem': 15,
-        'TODOS': 5
-    };
-    let nomesProblemas = ['Cancelamento', 'Atraso', 'Extravio de bagagem', 'Outros'];
-    let valoresProblemas = [55, 25, 15, 5];
-
-    if (filtroCompanhias && filtroCompanhias.problema !== 'TODOS') {
-        nomesProblemas = [filtroCompanhias.problema, 'Outros problemas'];
-        valoresProblemas = [problemas[filtroCompanhias.problema] || 20, 100 - (problemas[filtroCompanhias.problema] || 20)];
-    }
-
-    criarGrafico('grafico_problemas', 'pie', {
-        labels: nomesProblemas,
-        datasets: [
-            { data: valoresProblemas, backgroundColor: [cores.marinho, '#7d86a3', cores.azul, cores.amarelo] }
-        ]
+    criarGrafico('grafico_problemas', problemaSelecionado ? 'bar' : 'pie', {
+        labels: problemaSelecionado
+            ? companhiasSelecionadas.map(function (companhia) { return companhia.nome; })
+            : problemas,
+        datasets: [{
+            label: problemaSelecionado ? 'Reclamações' : 'Reclamações estimadas',
+            data: problemaSelecionado
+                ? companhiasSelecionadas.map(function (companhia) {
+                    return dadosReclamacoes.filter(function (linha) {
+                        return linha.companhia === companhia.nome && linha.problema === filtro.problema;
+                    }).reduce(function (total, linha) { return total + linha.quantidade; }, 0);
+                })
+                : valoresProblemas,
+            backgroundColor: [cores.marinho, '#7d86a3', cores.azul, cores.amarelo],
+            borderColor: '#f5f6fa',
+            borderWidth: 3
+        }]
     }, {
-        scales: {
-            y: { display: false },
-            x: { display: false }
-        }
+        plugins: {
+            legend: { position: problemaSelecionado ? 'top' : 'bottom' }
+        },
+        scales: problemaSelecionado ? {
+            y: { beginAtZero: true, grid: { color: '#e3e7ef' } },
+            x: { grid: { display: false } }
+        } : {}
     });
 
     criarGrafico('grafico_assentos', 'bar', {
-        labels: nomesCompanhias,
-        datasets: [
-            { label: 'Assentos ocupados', data: valoresAssentos, backgroundColor: cores.marinho }
-        ]
-    }, { indexAxis: 'y' });
+        labels: companhiasSelecionadas.map(function (companhia) { return companhia.nome; }),
+        datasets: [{
+            label: 'Voos',
+            data: companhiasSelecionadas.map(function (companhia) {
+                return voosPorCompanhia[companhia.nome] || 0;
+            }),
+            backgroundColor: cores.marinho,
+            borderRadius: 5,
+            maxBarThickness: 42
+        }]
+    }, {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, grid: { color: '#e3e7ef' } }, y: { grid: { display: false } } }
+    });
 
     criarGrafico('grafico_resolucao', 'bar', {
-        labels: nomesCompanhias,
+        labels: companhiasSelecionadas.map(function (companhia) { return companhia.nome; }),
         datasets: [
-            { label: 'Resolvido', data: valoresResolvidos, backgroundColor: cores.azul },
-            { label: 'Não resolvido', data: valoresNaoResolvidos, backgroundColor: '#b9bfd0' }
+            {
+                label: 'Resolvido (%)',
+                data: companhiasSelecionadas.map(function (companhia) {
+                    return obterPercentualResolucao(companhia, dadosReclamacoes);
+                }),
+                backgroundColor: cores.azul,
+                borderRadius: 4
+            },
+            {
+                label: 'Não resolvido (%)',
+                data: companhiasSelecionadas.map(function (companhia) {
+                    return 100 - obterPercentualResolucao(companhia, dadosReclamacoes);
+                }),
+                backgroundColor: '#b9bfd0',
+                borderRadius: 4
+            }
         ]
     }, {
+        indexAxis: 'y',
         scales: {
-            x: { stacked: true, max: 100 },
-            y: { stacked: true }
+            x: { stacked: true, max: 100, grid: { color: '#e3e7ef' } },
+            y: { stacked: true, grid: { display: false } }
         }
     });
-}
 
-function obterTotalVoos() {
-    return estadosBrasil.reduce(function (total, estado) {
-        return total + estado[2];
-    }, 0);
+    if (window.google && google.visualization && tipoPainel === 'destinos') {
+        desenharMapa();
+    }
 }
 
 function atualizarResumoMapa(nomeEstado, quantidadeVoos) {
-    const porcentagem = ((quantidadeVoos / obterTotalVoos()) * 100).toFixed(1);
-    document.getElementById('resumo_mapa').textContent = `${nomeEstado} teve ${quantidadeVoos} voos, representando ${porcentagem}% do Brasil.`;
+    const totalVoos = obterTotalVoos(obterDadosDeVoosFiltrados('destinos'));
+    const porcentagem = totalVoos ? ((quantidadeVoos / totalVoos) * 100).toFixed(1).replace('.', ',') : '0,0';
+    document.getElementById('resumo_mapa').textContent =
+        `${nomeEstado}: ${formatarQuantidade(quantidadeVoos)} voos (${porcentagem}% do resultado filtrado).`;
 }
 
 function desenharMapa() {
@@ -207,19 +537,31 @@ function desenharMapa() {
         return;
     }
 
+    const dadosVoos = obterDadosDeVoosFiltrados('destinos');
+    const totaisPorEstado = somarPor(dadosVoos, 'estado', 'voos');
+    const filtro = obterFiltroAtual('destinos');
     const dadosMapa = new google.visualization.DataTable();
     dadosMapa.addColumn('string', 'Estado');
     dadosMapa.addColumn('number', 'Voos');
     dadosMapa.addRows(estadosBrasil.map(function (estado) {
-        return [estado[0], estado[2]];
+        const codigo = estado[0].replace('BR-', '');
+        return [estado[0], totaisPorEstado[codigo] || 0];
     }));
 
     const mapa = new google.visualization.GeoChart(document.getElementById('mapa_brasil'));
+    google.visualization.events.addListener(mapa, 'select', function () {
+        const selecao = mapa.getSelection();
+        if (!selecao.length) {
+            return;
+        }
 
-    google.visualization.events.addListener(mapa, 'ready', function () {
-        document.querySelectorAll('#mapa_brasil path[fill="none"]').forEach(function (caminho) {
-            caminho.style.display = 'none';
+        const codigoEstado = dadosMapa.getValue(selecao[0].row, 0);
+        const estado = estadosBrasil.find(function (item) {
+            return item[0] === codigoEstado;
         });
+        if (estado) {
+            atualizarResumoMapa(estado[1], totaisPorEstado[estado[0].replace('BR-', '')] || 0);
+        }
     });
 
     mapa.draw(dadosMapa, {
@@ -235,36 +577,21 @@ function desenharMapa() {
         tooltip: { textStyle: { color: cores.marinho } }
     });
 
-    google.visualization.events.addListener(mapa, 'select', function () {
-        const selecao = mapa.getSelection();
-
-        if (selecao.length === 0) {
-            return;
-        }
-
-        const codigoEstado = dadosMapa.getValue(selecao[0].row, 0);
-        const estadoSelecionado = estadosBrasil.find(function (estado) {
-            return estado[0] === codigoEstado;
+    const estadoFiltrado = filtro && filtro.estado !== 'TODOS'
+        ? estadosBrasil.find(function (estado) { return estado[0] === `BR-${filtro.estado}`; })
+        : null;
+    if (estadoFiltrado) {
+        atualizarResumoMapa(estadoFiltrado[1], totaisPorEstado[filtro.estado] || 0);
+    } else {
+        const estadoDestaque = Object.keys(totaisPorEstado).sort(function (a, b) {
+            return totaisPorEstado[b] - totaisPorEstado[a];
+        })[0];
+        const estado = estadosBrasil.find(function (item) {
+            return item[0] === `BR-${estadoDestaque}`;
         });
-
-        if (estadoSelecionado) {
-            atualizarResumoMapa(estadoSelecionado[1], estadoSelecionado[2]);
-        }
-    });
-
-    const totalVoos = obterTotalVoos();
-    const porcentagemPrioritaria = (((980 + 760) / totalVoos) * 100).toFixed(1);
-    document.getElementById('resumo_mapa').textContent = `São Paulo e Rio de Janeiro concentram ${porcentagemPrioritaria}% dos voos do Brasil.`;
-
-    const filtroDestinos = obterFiltroAtual('destinos');
-    if (filtroDestinos && filtroDestinos.estado !== 'TODOS') {
-        const estadoFiltrado = estadosBrasil.find(function (estado) {
-            return estado[0] === `BR-${filtroDestinos.estado}`;
-        });
-
-        if (estadoFiltrado) {
-            atualizarResumoMapa(estadoFiltrado[1], estadoFiltrado[2]);
-        }
+        document.getElementById('resumo_mapa').textContent = estado
+            ? `${estado[1]} lidera o período com ${formatarQuantidade(totaisPorEstado[estadoDestaque])} voos.`
+            : 'Sem voos para mostrar neste período.';
     }
 }
 
@@ -302,6 +629,7 @@ function obterNomeEstado(codigoEstado) {
 }
 
 function normalizarFiltro(filtro, tipoPainel) {
+    filtro = Object.assign({}, filtro);
     if (filtro.estado === 'Todos os estados') {
         filtro.estado = 'TODOS';
     }
@@ -324,6 +652,8 @@ function normalizarFiltro(filtro, tipoPainel) {
     filtro.nomeEstado = filtro.nomeEstado || obterNomeEstado(filtro.estado);
     filtro.companhia = filtro.companhia || 'TODAS';
     filtro.problema = filtro.problema || 'TODOS';
+    filtro.dataInicial = filtro.dataInicial || '';
+    filtro.dataFinal = filtro.dataFinal || '';
     return filtro;
 }
 
@@ -335,38 +665,26 @@ function mostrarFiltroAtivo(tipoPainel) {
     if (!filtro) {
         aviso.hidden = true;
         textoAviso.textContent = '';
+        document.getElementById('botao_editar_filtro').hidden = true;
         return;
     }
 
     aviso.hidden = false;
     textoAviso.textContent = `Filtro ativo: ${filtro.nome}`;
+    document.getElementById('botao_editar_filtro').hidden = false;
 }
 
 function removerFiltroAtivo(tipoPainel) {
     localStorage.removeItem(`filtro_atual_${tipoPainel}`);
-    renderizarGraficos();
     mostrarFiltroAtivo(tipoPainel);
-
-    if (tipoPainel === 'destinos' && window.google && google.visualization) {
-        desenharMapa();
-    }
+    renderizarGraficos();
 }
 
 function aplicarFiltroNaDashboard(filtro, tipoPainel) {
     const filtroNormalizado = normalizarFiltro(filtro, tipoPainel);
     localStorage.setItem(`filtro_atual_${tipoPainel}`, JSON.stringify(filtroNormalizado));
-    renderizarGraficos();
+    selecionarPainel(tipoPainel);
     mostrarFiltroAtivo(tipoPainel);
-
-    if (tipoPainel === 'destinos' && filtroNormalizado.estado !== 'TODOS') {
-        const estadoSelecionado = estadosBrasil.find(function (estado) {
-            return estado[0] === `BR-${filtroNormalizado.estado}`;
-        });
-
-        if (estadoSelecionado) {
-            atualizarResumoMapa(estadoSelecionado[1], estadoSelecionado[2]);
-        }
-    }
 }
 
 function mostrarFiltrosSalvos() {
@@ -377,7 +695,10 @@ function mostrarFiltrosSalvos() {
     listaFiltros.innerHTML = '';
 
     if (filtrosSalvos.length === 0) {
-        listaFiltros.innerHTML = '<p class="mensagem_lista">Você ainda não criou nenhum filtro.</p>';
+        const mensagem = document.createElement('p');
+        mensagem.className = 'mensagem_lista';
+        mensagem.textContent = 'Você ainda não criou nenhum filtro.';
+        listaFiltros.appendChild(mensagem);
         return;
     }
 
@@ -389,18 +710,43 @@ function mostrarFiltrosSalvos() {
         const textoProblema = tipoPainel === 'companhias'
             ? ` · ${filtro.problema === 'TODOS' ? 'Todos os problemas' : filtro.problema}`
             : '';
+        const textoPeriodo = filtro.dataInicial || filtro.dataFinal
+            ? ` · ${obterTextoDoPeriodo(filtro)}`
+            : '';
         const cartaoFiltro = document.createElement('article');
         cartaoFiltro.className = 'cartao_filtro_salvo';
-        cartaoFiltro.innerHTML = `
-            <div>
-                <h3>${filtro.nome}</h3>
-                <p>${obterNomeEstado(filtro.estado)}${textoCompanhia}${textoProblema}</p>
-            </div>
-            <div class="acoes_filtro_salvo">
-                <button class="botao_aplicar_filtro" data-indice="${indice}">Aplicar</button>
-                <button class="botao_excluir_filtro" data-indice="${indice}">Excluir</button>
-            </div>
-        `;
+        const detalhesFiltro = document.createElement('div');
+        const nomeFiltro = document.createElement('h3');
+        const resumoFiltro = document.createElement('p');
+        const acoesFiltro = document.createElement('div');
+        const botaoAplicar = document.createElement('button');
+        const botaoEditar = document.createElement('button');
+        const botaoExcluir = document.createElement('button');
+
+        nomeFiltro.textContent = filtro.nome;
+        resumoFiltro.textContent = `${obterNomeEstado(filtro.estado)}${textoCompanhia}${textoProblema}${textoPeriodo}`;
+        acoesFiltro.className = 'acoes_filtro_salvo';
+        botaoAplicar.className = 'botao_aplicar_filtro';
+        botaoAplicar.type = 'button';
+        botaoAplicar.textContent = 'Aplicar';
+        botaoAplicar.dataset.indice = indice;
+        botaoEditar.className = 'botao_editar_filtro_salvo';
+        botaoEditar.type = 'button';
+        botaoEditar.textContent = 'Editar';
+        botaoEditar.dataset.indice = indice;
+        botaoExcluir.className = 'botao_excluir_filtro';
+        botaoExcluir.type = 'button';
+        botaoExcluir.textContent = 'Excluir';
+        botaoExcluir.dataset.indice = indice;
+        botaoExcluir.dataset.id = filtro.id;
+
+        detalhesFiltro.appendChild(nomeFiltro);
+        detalhesFiltro.appendChild(resumoFiltro);
+        acoesFiltro.appendChild(botaoAplicar);
+        acoesFiltro.appendChild(botaoEditar);
+        acoesFiltro.appendChild(botaoExcluir);
+        cartaoFiltro.appendChild(detalhesFiltro);
+        cartaoFiltro.appendChild(acoesFiltro);
         listaFiltros.appendChild(cartaoFiltro);
     });
 
@@ -409,6 +755,13 @@ function mostrarFiltrosSalvos() {
             const filtro = filtrosSalvos[botao.dataset.indice];
             aplicarFiltroNaDashboard(filtro, tipoPainel);
             document.getElementById('modal_filtros').hidden = true;
+        });
+    });
+
+    document.querySelectorAll('.botao_editar_filtro_salvo').forEach(function (botao) {
+        botao.addEventListener('click', function () {
+            const filtro = filtrosSalvos[botao.dataset.indice];
+            window.location.href = `filtros_criacao.html?tipo=${tipoPainel}&editar=${encodeURIComponent(filtro.id)}`;
         });
     });
 
@@ -422,6 +775,12 @@ function mostrarFiltrosSalvos() {
 
             filtrosSalvos.splice(botao.dataset.indice, 1);
             localStorage.setItem(obterChaveFiltros(tipoPainel), JSON.stringify(filtrosSalvos));
+            const filtroAtivo = obterFiltroAtual(tipoPainel);
+            if (filtroAtivo && String(filtroAtivo.id) === String(botao.dataset.id)) {
+                localStorage.removeItem(`filtro_atual_${tipoPainel}`);
+                renderizarGraficos();
+                mostrarFiltroAtivo(tipoPainel);
+            }
             mostrarFiltrosSalvos();
         });
     });
@@ -444,6 +803,7 @@ function selecionarPainel(tipoPainel) {
     document.getElementById('botao_criar_filtro').href = `filtros_criacao.html?tipo=${painelEscolhido}`;
     sessionStorage.PAINEL_DASHBOARD = painelEscolhido;
     mostrarFiltroAtivo(painelEscolhido);
+    renderizarGraficos();
 }
 
 function esperarAtualizacaoDaTela() {
@@ -568,6 +928,14 @@ function configurarEventos() {
         removerFiltroAtivo(obterPainelAtual());
     });
 
+    document.getElementById('botao_editar_filtro').addEventListener('click', function () {
+        const tipoPainel = obterPainelAtual();
+        const filtro = obterFiltroAtual(tipoPainel);
+        if (filtro) {
+            window.location.href = `filtros_criacao.html?tipo=${tipoPainel}&editar=${encodeURIComponent(filtro.id)}`;
+        }
+    });
+
     document.getElementById('botao_relatorio').addEventListener('click', gerarRelatorioPDF);
 }
 
@@ -583,15 +951,18 @@ function receberNovoFiltroDaUrl(parametrosUrl) {
         const tipoPainel = novoFiltro.tipo === 'companhias' ? 'companhias' : 'destinos';
         const chaveFiltros = obterChaveFiltros(tipoPainel);
         const filtrosSalvos = JSON.parse(localStorage.getItem(chaveFiltros) || '[]');
-        const filtroJaExiste = filtrosSalvos.some(function (filtro) {
-            return filtro.id === novoFiltro.id;
+        const indiceFiltro = filtrosSalvos.findIndex(function (filtro) {
+            return String(filtro.id) === String(novoFiltro.id);
         });
 
-        if (!filtroJaExiste) {
+        if (indiceFiltro < 0) {
             filtrosSalvos.push(novoFiltro);
-            localStorage.setItem(chaveFiltros, JSON.stringify(filtrosSalvos));
+        } else {
+            filtrosSalvos[indiceFiltro] = novoFiltro;
         }
 
+        localStorage.setItem(chaveFiltros, JSON.stringify(filtrosSalvos));
+        localStorage.setItem(`filtro_atual_${tipoPainel}`, JSON.stringify(normalizarFiltro(novoFiltro, tipoPainel)));
         window.history.replaceState({}, '', `dashboard.html?painel=${tipoPainel}`);
     } catch (erro) {
         console.log('Não foi possível receber o novo filtro.', erro);
@@ -604,7 +975,6 @@ document.addEventListener('DOMContentLoaded', function () {
     receberNovoFiltroDaUrl(parametrosUrl);
     const painelInicial = parametrosUrl.get('painel') || sessionStorage.PAINEL_DASHBOARD || 'destinos';
     selecionarPainel(painelInicial);
-    renderizarGraficos();
     configurarEventos();
 
     if (window.google) {
