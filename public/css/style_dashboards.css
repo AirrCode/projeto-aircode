@@ -7,7 +7,7 @@
 
 body {
     min-height: 100vh;
-    background-color: #ffffff;
+    background-color: #f7f8fb;
     color: #0C1B4D;
 }
 
@@ -20,6 +20,21 @@ select {
 button,
 a {
     cursor: pointer;
+}
+
+button,
+a,
+input,
+select {
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid #7d9cff;
+    outline-offset: 3px;
 }
 
 .cabecalho_dashboard {
@@ -207,10 +222,32 @@ a {
     font-weight: bold;
 }
 
+.botao_salvar_filtro:hover,
+.botao_criar_filtro:hover,
+.botao_aplicar_filtro:hover,
+.botao_editar_filtro_salvo:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.botao_salvar_filtro:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.aviso_erro_filtro {
+    padding: 14px 16px;
+    border-left: 3px solid #d94343;
+    border-radius: 6px;
+    background: #fff1f1;
+    color: #8a2020;
+    line-height: 1.5;
+}
+
 .principal_dashboard {
-    max-width: 1220px;
+    max-width: 1360px;
     margin: 0 auto;
-    padding: 36px 28px 70px;
+    padding: 42px 32px 76px;
 }
 
 .topo_dashboard {
@@ -232,6 +269,7 @@ a {
 h1 {
     color: #0C1B4D;
     font-size: 48px;
+    letter-spacing: -1.5px;
 }
 
 .seletor_dashboard {
@@ -258,6 +296,7 @@ h1 {
 
 .aviso_filtro_ativo {
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 10px;
     margin-bottom: 18px;
@@ -267,6 +306,20 @@ h1 {
     color: #1B39D6;
     font-size: 13px;
     font-weight: bold;
+}
+
+.botao_editar_filtro_ativo {
+    padding: 5px 10px;
+    border: 1px solid #1B39D633;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #1B39D6;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.botao_editar_filtro_ativo:hover {
+    background: #f3f5ff;
 }
 
 .aviso_filtro_ativo[hidden] {
@@ -332,6 +385,8 @@ h1 {
 .cartao_indicador strong {
     font-size: 21px;
     line-height: 1.35;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
 }
 
 .indicador_centralizado {
@@ -363,7 +418,7 @@ h1 {
 }
 
 .grade_graficos_destinos {
-    grid-template-columns: 1.1fr 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: 24px;
 }
 
@@ -373,22 +428,33 @@ h1 {
 }
 
 .cartao_grafico {
-    min-height: 330px;
-    padding: 20px;
-    border-radius: 18px;
-    background-color: #f5f6fa;
+    min-width: 0;
+    min-height: auto;
+    padding: 22px;
+    border: 1px solid #e8ebf2;
+    border-radius: 16px;
+    background-color: #ffffff;
+    box-shadow: 0 8px 24px #19295a0a;
 }
 
 .cartao_grafico h2 {
-    margin-bottom: 16px;
+    min-height: 38px;
+    margin-bottom: 12px;
     color: #0C1B4D;
     font-size: 15px;
-    text-align: center;
+    line-height: 1.35;
+    text-align: left;
 }
 
-.cartao_grafico canvas {
-    width: 100% !important;
-    height: 250px !important;
+.area_grafico {
+    position: relative;
+    width: 100%;
+    height: 260px;
+}
+
+.area_grafico canvas {
+    display: block;
+    max-width: 100%;
 }
 
 .cartao_mapa {
@@ -397,13 +463,16 @@ h1 {
 }
 
 #mapa_brasil {
-    flex: 1;
-    min-height: 230px;
+    width: 100%;
+    height: 260px;
 }
 
 .cartao_mapa p {
+    min-height: 32px;
+    margin-top: 10px;
     color: #555555;
     font-size: 12px;
+    line-height: 1.4;
     text-align: center;
 }
 
@@ -482,17 +551,23 @@ h1 {
 
 .acoes_filtro_salvo {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
 }
 
 .botao_aplicar_filtro,
-.botao_excluir_filtro {
+.botao_excluir_filtro,
+.botao_editar_filtro_salvo {
     padding: 8px 12px;
     border: none;
     border-radius: 7px;
     color: #ffffff;
     font-size: 12px;
     font-weight: bold;
+}
+
+.botao_editar_filtro_salvo {
+    background-color: #1B39D6;
 }
 
 .botao_aplicar_filtro {
@@ -515,8 +590,9 @@ h1 {
         grid-template-columns: 1fr 1fr;
     }
 
-    .cartao_grafico:last-child {
-        grid-column: span 2;
+    .grade_graficos_destinos,
+    .grade_graficos_companhias {
+        align-items: start;
     }
 }
 
@@ -554,7 +630,7 @@ h1 {
     }
 
     h1 {
-        font-size: 36px;
+        font-size: 38px;
     }
 
     .topo_dashboard {
@@ -575,6 +651,15 @@ h1 {
 
     .cartao_grafico:last-child {
         grid-column: auto;
+    }
+
+    .area_grafico,
+    #mapa_brasil {
+        height: 245px;
+    }
+
+    .aviso_filtro_ativo {
+        align-items: flex-start;
     }
 
     .cartao_filtro_salvo {
