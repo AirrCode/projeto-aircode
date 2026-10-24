@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/icon/logo.png" type="image/png">
+    <link rel="stylesheet" href="css/alertas.css">
+    <title>Aircode | Alertas</title>
+</head>
+
+<body>
+    <header class="cabecalho_dashboard">
+        <a class="logo_dashboard" href="index.html" aria-label="Voltar para a página inicial">
+            <img src="assets/imgs/logo_texto_branco.png" alt="Aircode">
+        </a>
+
+        <div class="acoes_cabecalho">
+            <a class="botao_pagina_inicial" href="index.html">Página inicial</a>
+            <a class="link_voltar_dashboard" href="dashboard.html">← Voltar à dashboard</a>
+            <div class="perfil_usuario">
+                <div class="imagem_perfil">
+                    <img src="assets/imgs/usuario.png" alt="Imagem do usuário">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="principal_alerta">
+        <div class="topo_alertas">
+            <div>
+                <p class="texto_pequeno">Acompanhe suas métricas</p>
+                <h1>Alertas</h1>
+            </div>
+
+            <a class="botao_adicionar_alerta" href="alertas_criacao.html">
+                <span>+</span>
+                Adicionar alerta
+            </a>
+        </div>  
+
+        <input class="busca_alertas" type="search" placeholder="Buscar alerta" aria-label="Buscar alerta">
+
+        <div class="tabela_alertas_area">
+            <table class="tabela_alertas">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th class="coluna_criador">Criador</th>
+                        <th>Métrica</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="meu_alerta">
+                        <td>Queda de nota</td>
+                        <td class="coluna_criador">Maria Silva</td>
+                        <td>Avaliação média</td>
+                        <td><span class="status_alerta status_ativo">Ativo</span></td>
+                        <td class="coluna_acoes">
+                            <div class="acoes_alerta">
+                                <a class="botao_editar_alerta" href="alerta_criacao.html?id=1">Editar</a>
+                                <button class="botao_excluir_alerta" type="button">Excluir</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Meta de faturamento</td>
+                        <td class="coluna_criador">João Souza</td>
+                        <td>Faturamento estimado</td>
+                        <td><span class="status_alerta status_ativo">Ativo</span></td>
+                        <td class="coluna_acoes">
+                            <div class="acoes_alerta">
+                                <a class="botao_editar_alerta" href="alerta_criacao.html?id=2">Editar</a>
+                                <button class="botao_excluir_alerta" type="button">Excluir</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="meu_alerta">
+                        <td>Pico de reclamações</td>
+                        <td class="coluna_criador">Maria Silva</td>
+                        <td>Total de reclamações</td>
+                        <td><span class="status_alerta status_inativo">Inativo</span></td>
+                        <td class="coluna_acoes">
+                            <div class="acoes_alerta">
+                                <a class="botao_editar_alerta" href="alerta_criacao.html?id=3">Editar</a>
+                                <button class="botao_excluir_alerta" type="button">Excluir</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+
+</html>

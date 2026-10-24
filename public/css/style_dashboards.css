@@ -578,6 +578,29 @@ h1 {
     background-color: #F04F51;
 }
 
+.acoes_topo_dashboard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.botao_alertas {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 22px;
+    background-color: #0C1B4D;
+    color: #ffffff;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.botao_alertas span {
+    margin-right: 6px;
+    font-size: 22px;
+}
+
 [hidden] {
     display: none !important;
 }
@@ -679,4 +702,17 @@ h1 {
         grid-template-columns: 1fr;
         gap: 20px;
     }
+
+    .acoes_topo_dashboard {
+    align-self: stretch;
+    }
+
+    .acoes_topo_dashboard .botao_alertas,
+    .acoes_topo_dashboard .botao_filtros {
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+    }
+
+    
 }
