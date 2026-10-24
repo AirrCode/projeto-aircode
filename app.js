@@ -17,6 +17,7 @@ var app = express();
 
 var indexRouter = require("./src/routes/index");
 var usuarioRouter = require("./src/routes/usuarios");
+var aprovacoesRouter = require("./src/routes/aprovacoes");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -24,8 +25,9 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(cors());
 
-app.use("/", indexRouter)
-app.use("/usuarios", usuarioRouter)
+app.use("/", indexRouter);
+app.use("/usuarios", usuarioRouter);
+app.use("/aprovacoes", aprovacoesRouter);
 
 app.listen(PORTA_APP, function () {
     console.log(`
