@@ -1,0 +1,98 @@
+/* Complementa style_dashboards.css (cabeçalho, botões, modal e formulário são reaproveitados) */
+
+.busca_funcionarios {
+    flex: 1;
+    max-width: 520px;
+    margin: 0 24px;
+}
+
+.busca_funcionarios input {
+    width: 100%;
+    padding: 11px 20px;
+    border: none;
+    border-radius: 22px;
+    background-color: #ffffff;
+    color: #333333;
+    font-size: 14px;
+}
+
+.topo_dashboard {
+    margin-bottom: 28px;
+}
+
+.tabela_funcionarios {
+    overflow: hidden;
+    border-radius: 14px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 16px #0c1b4d14;
+}
+
+.linha_funcionario {
+    display: grid;
+    grid-template-columns: 1.4fr 1.6fr 1fr 190px;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 26px;
+    border-bottom: 1px solid #e7e9f2;
+}
+
+.linha_funcionario:last-child {
+    border-bottom: none;
+}
+
+.cabecalho_tabela {
+    background-color: #0C1B4D;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.linha_funcionario span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.linha_funcionario:not(.cabecalho_tabela) span:not(.coluna_acoes) {
+    color: #202633;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.coluna_acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.mensagem_tabela {
+    padding: 36px 26px;
+    color: #5d6475;
+    font-size: 14px;
+    text-align: center;
+}
+
+.modal_funcionario {
+    width: min(480px, 100%);
+}
+
+@media screen and (max-width: 900px) {
+    .busca_funcionarios {
+        display: none;
+    }
+
+    .linha_funcionario {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .cabecalho_tabela {
+        display: none;
+    }
+
+    .coluna_acoes {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+    }
+}

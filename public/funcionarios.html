@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/icon/logo.png" type="image/png">
+    <link rel="stylesheet" href="css/style_dashboards.css">
+    <link rel="stylesheet" href="css/style_funcionarios.css">
+    <title>Aircode | Funcionários</title>
+</head>
+
+<body>
+    <header class="cabecalho_dashboard">
+        <a class="logo_dashboard" href="index.html" aria-label="Voltar para a página inicial">
+            <img src="assets/imgs/logo_texto_branco.png" alt="Aircode">
+        </a>
+
+        <div class="busca_funcionarios">
+            <input id="campo_busca" type="search" placeholder="Buscar por nome, email ou cargo" aria-label="Buscar funcionário">
+        </div>
+
+        <div class="acoes_cabecalho">
+            <a class="link_voltar_dashboard" href="dashboard.html">Dashboard</a> |
+            <div class="perfil_usuario">
+                <div class="imagem_perfil">
+                    <img src="assets/imgs/usuario.png" alt="Imagem do usuário">
+                </div>
+                <span id="nome_usuario_dashboard" class="nome_usuario_dashboard">Aircode</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="principal_dashboard">
+        <div class="topo_dashboard">
+            <div>
+                <p class="texto_pequeno">Gestão da equipe</p>
+                <h1>Lista de funcionários</h1>
+            </div>
+
+            <button class="botao_filtros" id="botao_adicionar" type="button">
+                <span>+</span>
+                Adicionar funcionário
+            </button>
+        </div>
+
+        <div class="tabela_funcionarios" role="table" aria-label="Lista de funcionários">
+            <div class="linha_funcionario cabecalho_tabela" role="row">
+                <span role="columnheader">Nome</span>
+                <span role="columnheader">Email</span>
+                <span role="columnheader">Cargo</span>
+                <span role="columnheader" class="coluna_acoes">Ações</span>
+            </div>
+            <div id="lista_funcionarios"></div>
+        </div>
+    </main>
+
+    <div class="fundo_modal" id="modal_funcionario" hidden>
+        <section class="modal_filtros modal_funcionario" role="dialog" aria-modal="true" aria-labelledby="titulo_modal_funcionario">
+            <button class="botao_fechar" id="botao_fechar_modal" type="button" aria-label="Fechar">×</button>
+            <h2 id="titulo_modal_funcionario">Adicionar funcionário</h2>
+
+            <form id="formulario_funcionario" class="formulario_filtro">
+                <label>
+                    Nome
+                    <input id="nome_funcionario" type="text" maxlength="100" required>
+                </label>
+
+                <label>
+                    Email
+                    <input id="email_funcionario" type="email" maxlength="100" required>
+                </label>
+
+                <label>
+                    Cargo
+                    <input id="cargo_funcionario" type="text" maxlength="50" required>
+                </label>
+
+                <label>
+                    Nível de acesso
+                    <select id="nivel_funcionario"></select>
+                </label>
+
+                <label id="campo_senha_funcionario">
+                    Senha
+                    <input id="senha_funcionario" type="password" minlength="6">
+                </label>
+
+                <p class="aviso_erro_filtro" id="erro_funcionario" hidden></p>
+
+                <button class="botao_salvar_filtro" id="botao_salvar_funcionario" type="submit">Salvar</button>
+            </form>
+        </section>
+    </div>
+
+    <script src="js/funcionarios.js"></script>
+</body>
+
+</html>

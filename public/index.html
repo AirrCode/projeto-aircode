@@ -28,6 +28,9 @@
                 <li>
                     <a href="#contato">Contato</a>
                 </li>
+                <li id="dashboard_user" style="display: none;">
+                    <a href="dashboard.html">Dashboard</a>
+                </li>
             </ul>
             <div class="div_botoes_header" id="div_botoes_header">
                 <a href="login_usuario.html">
@@ -231,6 +234,8 @@
             document.getElementById("div_botoes_header").style.display = "none";
             document.getElementById("nome_usuario_header").innerHTML = nome;
             document.getElementById("usuario_logado").style.display = "flex";
+            document.getElementById("dashboard_user").style.display = "block";
+            
         }
     }
 
