@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/icon/logo.png" type="image/png">
+    <link rel="stylesheet" href="css/alertas.css">
+    <title>Aircode | Criação de alerta</title>
+</head>
+
+<body>
+    <header class="cabecalho_dashboard">
+        <a class="logo_dashboard" href="index.html" aria-label="Voltar para a página inicial">
+            <img src="assets/imgs/logo_texto_branco.png" alt="Aircode">
+        </a>
+
+        <div class="acoes_cabecalho">
+            <a class="botao_pagina_inicial" href="index.html">Página inicial</a>
+            <a class="link_voltar_dashboard" href="dashboard.html">← Voltar à dashboard</a>
+            <div class="perfil_usuario">
+                <div class="imagem_perfil">
+                    <img src="assets/imgs/usuario.png" alt="Imagem do usuário">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="principal_alerta">
+    <p class="texto_pequeno">Personalize seus alertas</p>
+    <h1>Criação de alerta</h1>
+
+    <form class="formulario_alerta" id="formulario_alerta">
+        <label for="nome_alerta">
+            Nome
+            <input type="text" id="nome_alerta" name="nome" required>
+        </label>
+
+        <label for="metrica_alvo">
+            Métrica alvo
+            <select id="metrica_alvo" name="metrica_alvo" required>
+    <option value="">Selecione uma métrica</option>
+
+    <optgroup label="Destinos">
+        <option value="voos_destino_destaque">Voos do destino com mais voos</option>
+        <option value="faturamento_estimado">Faturamento estimado</option>
+    </optgroup>
+
+    <optgroup label="Companhias" id="grupo_metricas_companhias">
+        <option value="avaliacao_media">Avaliação média</option>
+        <option value="taxa_resolucao">Taxa de resolução</option>
+        <option value="total_reclamacoes">Total de reclamações</option>
+    </optgroup>
+</select>
+        </label>
+
+        <div class="grupo_alerta">
+            <label for="condicao">
+                Condição
+                <select id="condicao" name="condicao" required>
+                    <option value="">Selecione</option>
+                    <option value="maior">Maior que</option>
+                    <option value="menor">Menor que</option>
+                    <option value="igual">Igual a</option>
+                </select>
+            </label>
+
+            <label for="valor_numerico">
+    Valor numérico
+    <input type="number" id="valor_numerico" name="valor_numerico" step="any" required>
+</label>
+        </div>
+
+        <button type="submit" class="botao_enviar_alerta">Enviar</button>
+    </form>
+</main>

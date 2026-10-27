@@ -1,0 +1,451 @@
+/* ==========================================================
+   Aircode | Criação de alerta
+   CSS exclusivo da página de alerta (independente do
+   style_dashboards.css). Mantém o mesmo padrão visual:
+   cabeçalho, tipografia, tamanho dos campos e botões.
+   ========================================================== */
+
+/* ---------- Base ---------- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background-color: #f7f8fb;
+    color: #0C1B4D;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button,
+a {
+    cursor: pointer;
+}
+
+button,
+a,
+input,
+select {
+    transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, filter 0.18s ease;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 3px solid #7d9cff;
+    outline-offset: 3px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+h1 {
+    color: #0C1B4D;
+    font-size: 48px;
+    letter-spacing: -1.5px;
+}
+
+/* ---------- Cabeçalho ---------- */
+.cabecalho_dashboard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    padding: 0 4%;
+    background-color: #100B4D;
+    color: #ffffff;
+    box-shadow: 0 3px 12px #08052533;
+}
+
+.logo_dashboard {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.logo_dashboard img {
+    width: auto;
+    height: 44px;
+}
+
+.acoes_cabecalho {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.botao_pagina_inicial {
+    padding: 9px 14px;
+    border: 1px solid #ffffff66;
+    border-radius: 20px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.botao_pagina_inicial:hover {
+    background-color: #ffffff18;
+}
+
+.link_voltar_dashboard {
+    padding: 9px 14px;
+    border-radius: 20px;
+    background-color: #ffffff16;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.link_voltar_dashboard:hover {
+    background-color: #ffffff2b;
+}
+
+.perfil_usuario {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.imagem_perfil {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    overflow: hidden;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    background-color: #b6b8bd;
+}
+
+.imagem_perfil img {
+    width: 78%;
+    height: 78%;
+    object-fit: contain;
+}
+
+/* ---------- Conteúdo principal ---------- */
+.principal_alerta {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 42px 28px 80px;
+}
+
+.texto_pequeno {
+    margin-bottom: 6px;
+    color: #1B39D6;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.principal_alerta h1 {
+    margin-bottom: 40px;
+}
+
+/* ---------- Formulário ---------- */
+.formulario_alerta {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.formulario_alerta label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: #202633;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.formulario_alerta input,
+.formulario_alerta select {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #d6d9e2;
+    border-radius: 8px;
+    background-color: #f7f8fb;
+    color: #333333;
+    font-size: 15px;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.formulario_alerta input:hover,
+.formulario_alerta select:hover {
+    border-color: #b9bfd0;
+}
+
+.formulario_alerta input:focus,
+.formulario_alerta select:focus {
+    border-color: #1B39D6;
+}
+
+/* Condição + Valor numérico lado a lado */
+.grupo_alerta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+}
+
+/* ---------- Botão enviar ---------- */
+.botao_enviar_alerta {
+    align-self: center;
+    margin-top: 12px;
+    padding: 13px 30px;
+    border: none;
+    border-radius: 8px;
+    background-color: #0C1B4D;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.botao_enviar_alerta:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.botao_enviar_alerta:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* ---------- Aviso de erro ---------- */
+.aviso_erro_alerta {
+    padding: 14px 16px;
+    border-left: 3px solid #d94343;
+    border-radius: 6px;
+    background: #fff1f1;
+    color: #8a2020;
+    line-height: 1.5;
+}
+
+/* ---------- Responsivo ---------- */
+@media screen and (max-width: 600px) {
+    .cabecalho_dashboard {
+        padding: 0 18px;
+    }
+
+    .botao_pagina_inicial {
+        display: none;
+    }
+
+    .logo_dashboard img {
+        height: 38px;
+    }
+
+    .acoes_cabecalho {
+        gap: 8px;
+    }
+
+    .link_voltar_dashboard {
+        padding: 9px 12px;
+        font-size: 12px;
+    }
+
+    .imagem_perfil {
+        width: 38px;
+        height: 38px;
+    }
+
+    h1 {
+        font-size: 38px;
+    }
+
+    .principal_alerta {
+        padding: 30px 18px 60px;
+    }
+
+    .grupo_alerta {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+}
+
+/* ==========================================================
+   Tela de lista de alertas (alertas.html)
+   ========================================================== */
+
+.topo_alertas {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.topo_alertas h1 {
+    margin-bottom: 0;
+}
+
+.botao_adicionar_alerta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 8px;
+    background-color: #1B39D6;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.botao_adicionar_alerta span {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.botao_adicionar_alerta:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.busca_alertas {
+    width: 100%;
+    max-width: 420px;
+    margin-bottom: 22px;
+    padding: 14px;
+    border: 1px solid #d6d9e2;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #333333;
+    font-size: 15px;
+}
+
+.busca_alertas:focus {
+    border-color: #1B39D6;
+}
+
+.tabela_alertas_area {
+    overflow-x: auto;
+    border: 1px solid #e8ebf2;
+    border-radius: 16px;
+    background-color: #ffffff;
+    box-shadow: 0 8px 24px #19295a0a;
+}
+
+.tabela_alertas {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+}
+
+.tabela_alertas th {
+    padding: 16px 20px;
+    background-color: #0C1B4D;
+    color: #ffffff;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.tabela_alertas td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #e8ebf2;
+    color: #202633;
+    font-size: 15px;
+}
+
+.tabela_alertas tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.tabela_alertas tbody tr:hover {
+    background-color: #f7f8fb;
+}
+
+.coluna_acoes {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.status_alerta {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status_ativo {
+    background-color: #e3f7ec;
+    color: #0f7a45;
+}
+
+.status_inativo {
+    background-color: #eceef4;
+    color: #5d6475;
+}
+
+.acoes_alerta {
+    display: inline-flex;
+    gap: 8px;
+}
+
+.botao_editar_alerta,
+.botao_excluir_alerta {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 7px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.botao_editar_alerta {
+    background-color: #1B39D6;
+}
+
+.botao_excluir_alerta {
+    background-color: #F04F51;
+}
+
+.botao_editar_alerta:hover,
+.botao_excluir_alerta:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+@media screen and (max-width: 600px) {
+    .topo_alertas {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .botao_adicionar_alerta {
+        align-self: stretch;
+        justify-content: center;
+    }
+
+    .busca_alertas {
+        max-width: none;
+    }
+}
+
+/* ---------- Perfil funcionário ----------
+   <body class="perfil_funcionario"> mostra só os alertas
+   marcados com .meu_alerta e esconde a coluna Criador.
+   Sem a classe no body, o admin vê tudo. */
+.perfil_funcionario .coluna_criador,
+.perfil_funcionario tbody tr:not(.meu_alerta) {
+    display: none;
+}
