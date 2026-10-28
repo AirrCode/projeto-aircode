@@ -29,8 +29,8 @@ function cadastrar(nome, email, senha, cnpj, razaoSocial, cargo, setor) {
             [razaoSocial, cnpj, setor]
         );
         return executar(
-            "INSERT INTO usuario (id_empresa, nome, email, senha, cargo, nivel_acesso) VALUES (?, ?, ?, ?, ?)",
-            [resultadoEmpresa.insertId, nome, email, senha, cargo]
+            "INSERT INTO usuario (id_empresa, nome, email, senha, cargo, nivel_acesso) VALUES (?, ?, ?, ?, ?, ?)",
+            [resultadoEmpresa.insertId, nome, email, senha, cargo, "ADMIN_MASTER"]
         );
     });
 }
