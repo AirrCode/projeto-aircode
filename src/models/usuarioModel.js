@@ -9,6 +9,7 @@ function autenticar(email, senha) {
             u.email,
             u.cargo,
             u.status_usuario,
+            u.nivel_acesso,
             e.cnpj,
             e.setor_atuacao,
             e.status_aprovacao
@@ -28,7 +29,7 @@ function cadastrar(nome, email, senha, cnpj, razaoSocial, cargo, setor) {
             [razaoSocial, cnpj, setor]
         );
         return executar(
-            "INSERT INTO usuario (id_empresa, nome, email, senha, cargo, nivel_acesso) VALUES (?, ?, ?, ?, ?, 'ADMIN_MASTER')",
+            "INSERT INTO usuario (id_empresa, nome, email, senha, cargo, nivel_acesso) VALUES (?, ?, ?, ?, ?)",
             [resultadoEmpresa.insertId, nome, email, senha, cargo]
         );
     });

@@ -4,3 +4,5 @@ package-lock.json
 .env
 .env.dev
 .github
+chatbot/.env
+chatbot/venv

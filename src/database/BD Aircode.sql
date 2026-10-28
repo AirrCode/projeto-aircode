@@ -122,4 +122,18 @@ CREATE TABLE reclamacao (
     CONSTRAINT fk_reclamacao_companhia FOREIGN KEY (id_companhia) REFERENCES companhia(id_companhia)
 );
 
+INSERT INTO empresa (razao_social, cnpj, setor_atuacao, status_aprovacao)
+VALUES ('Aircode', '00000000000000', 'AGENCIA', 'APROVADO');
+
+INSERT INTO usuario (id_empresa, nome, email, senha, cargo, nivel_acesso, status_usuario)
+VALUES (
+    (SELECT id_empresa FROM empresa WHERE cnpj = '00000000000000'),
+    'Administrador Aircode',
+    'aircode@sptech.com',
+    'Aircode123@',
+    'Administrador',
+    'ADMIN_MASTER',
+    TRUE
+);
+
 
