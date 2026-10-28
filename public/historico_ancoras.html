@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Âncoras | Aircode</title>
+    <link rel="icon" href="assets/icon/logo.png" type="image/png">
+    <link rel="stylesheet" href="css/style_dashboards.css">
+    <link rel="stylesheet" href="css/style_ancoras.css">
+</head>
+
+<body>
+
+    <header class="cabecalho_dashboard">
+        <a class="logo_dashboard" href="index.html" aria-label="Página inicial">
+            <img src="assets/imgs/logo_texto_branco.png" alt="Aircode">
+        </a>
+
+        <div class="acoes_cabecalho">
+            <a class="botao_pagina_inicial" href="index.html">Página inicial</a>
+            <a class="link_voltar_dashboard" href="dashboard.html">← Voltar à dashboard</a>
+
+            <div class="perfil_usuario">
+                <div class="imagem_perfil">
+                    <img src="assets/imgs/usuario.png" alt="Imagem do usuário">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="area_ancoras" style="max-width: 1000px;">
+        <h2>Histórico de Âncoras Configuradas</h2><br>
+        <p style="font-family: 'Times New Roman', Times, serif;">Gerencie, edite ou exclua as âncoras ativas no sistema.</p>
+
+        <div style="overflow-x: auto;">
+            <table class="tabela-historico">
+                <thead>
+                    <tr>
+                        <th>Nome da Âncora</th>
+                        <th>KPI / Indicador</th>
+                        <th>Criador</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela_corpo">
+                    
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="js/historico_ancoras.js"></script>
+</body>
+
+</html>

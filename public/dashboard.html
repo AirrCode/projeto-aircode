@@ -35,6 +35,11 @@
             </div>
 
             <div class="acoes_topo_dashboard">
+                <a class="botao_ancoras" href="historico_ancoras.html">
+                    <span>⚓</span>
+                    Histórico de Âncoras
+                </a>
+
                 <a class="botao_alertas" href="alertas_listar.html">
                     <span>🔔</span>
                     Alertas
@@ -55,26 +60,48 @@
         <div class="aviso_filtro_ativo" id="aviso_filtro_ativo" hidden>
             <span id="texto_filtro_ativo"></span>
             <button class="botao_editar_filtro_ativo" id="botao_editar_filtro" type="button">Editar filtro</button>
-            <button class="botao_remover_filtro" id="botao_remover_filtro" type="button" aria-label="Remover filtro ativo">×</button>
+            <button class="botao_remover_filtro" id="botao_remover_filtro" type="button"
+                aria-label="Remover filtro ativo">×</button>
         </div>
 
         <section id="painel_destinos" class="painel_dashboard">
             <div class="grade_cartoes grade_cartoes_destinos">
                 <article class="cartao_indicador">
-                    <span id="kpi_destinos_titulo">Destinos mais procurados</span>
-                    <strong id="kpi_destinos_valor"></strong>
+                    <div class="cabecalho_indicador">
+                        <span id="kpi_destinos_titulo">Destinos mais procurados</span>
+                        <a href="ancoras.html?kpi=destinos">
+                            <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
+                        </a>
+                    </div>
+                    <div class="cartao_conteudo">
+                        <strong id="kpi_destinos_valor"></strong>
+                    </div>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
-                    <span>Destino com mais voos</span>
-                    <strong id="kpi_estado_destaque"></strong>
-                    <small id="kpi_estado_destaque_detalhe"></small>
+                    <div class="cabecalho_indicador">
+                        <span>Destino com mais voos</span>
+                        <a href="ancoras.html?kpi=destaque">
+                            <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
+                        </a>
+                    </div>
+                    <div class="cartao_conteudo">
+                        <strong id="kpi_estado_destaque"></strong>
+                        <small id="kpi_estado_destaque_detalhe"></small>
+                    </div>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
-                    <span>Faturamento estimado</span>
-                    <strong id="kpi_faturamento"></strong>
-                    <small id="kpi_faturamento_detalhe"></small>
+                    <div class="cabecalho_indicador">
+                        <span>Faturamento estimado</span>
+                        <a href="ancoras.html?kpi=faturamento">
+                            <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
+                        </a>
+                    </div>
+                    <div class="cartao_conteudo">
+                        <strong id="kpi_faturamento"></strong>
+                        <small id="kpi_faturamento_detalhe"></small>
+                    </div>
                 </article>
             </div>
 
@@ -100,27 +127,55 @@
         <section id="painel_companhias" class="painel_dashboard" hidden>
             <div class="grade_cartoes grade_cartoes_companhias">
                 <article class="cartao_indicador indicador_centralizado">
-                    <span>Avaliação média</span>
-                    <strong id="kpi_avaliacao"></strong>
-                    <small id="kpi_avaliacao_detalhe"></small>
+                    <div class="cabecalho_indicador">
+                        <span>Avaliação média</span>
+                        <a href="ancoras.html?kpi=avaliacao">
+                            <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
+                        </a>
+                    </div>
+                    <div class="cartao_conteudo">
+                        <strong id="kpi_avaliacao"></strong>
+                        <small id="kpi_avaliacao_detalhe"></small>
+                    </div>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
-                    <span>Taxa de resolução</span>
-                    <strong id="kpi_resolucao"></strong>
-                    <small id="kpi_resolucao_detalhe"></small>
+                    <div class="cabecalho_indicador">
+                        <span>Taxa de resolução</span>
+                        <a href="ancoras.html?kpi=resolucao">
+                            <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
+                        </a>
+                    </div>
+                    <div class="cartao_conteudo">
+                        <strong id="kpi_resolucao"></strong>
+                        <small id="kpi_resolucao_detalhe"></small>
+                    </div>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
-                    <span>Total de reclamações</span>
-                    <strong id="kpi_reclamacoes"></strong>
-                    <small id="kpi_reclamacoes_detalhe"></small>
+                    <div class="cabecalho_indicador">
+                        <span>Total de reclamações</span>
+                        <a href="ancoras.html?kpi=reclamacao">
+                            <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
+                        </a>
+                    </div>
+                    <div class="cartao_conteudo">
+                        <strong id="kpi_reclamacoes"></strong>
+                        <small id="kpi_reclamacoes_detalhe"></small>
+                    </div>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
-                    <span>Problema mais frequente</span>
-                    <strong id="kpi_problema"></strong>
-                    <small id="kpi_problema_detalhe"></small>
+                    <div class="cabecalho_indicador">
+                        <span>Problema mais frequente</span>
+                        <a href="ancoras.html?kpi=frequente">
+                            <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
+                        </a>
+                    </div>
+                    <div class="cartao_conteudo">
+                        <strong id="kpi_problema"></strong>
+                        <small id="kpi_problema_detalhe"></small>
+                    </div>
                 </article>
             </div>
 
