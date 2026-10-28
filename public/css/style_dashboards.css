@@ -41,7 +41,7 @@ select:focus-visible {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 72px;
+    height: 80px;
     padding: 0 4%;
     background-color: #100B4D;
     color: #ffffff;
@@ -56,7 +56,7 @@ select:focus-visible {
 
 .logo_dashboard img {
     width: auto;
-    height: 44px;
+    height: 80px;
 }
 
 .acoes_cabecalho {
@@ -366,19 +366,28 @@ h1 {
 
 .cartao_indicador {
     display: flex;
-    min-height: 140px;
+    min-height: 150px;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     gap: 10px;
     padding: 22px;
     border-radius: 18px;
     background-color: #0C1B4D;
     color: #ffffff;
+    position: relative;
+}
+
+.cartao_conteudo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    flex-grow: 1; 
+    gap: 12px;
 }
 
 .cartao_indicador span,
 .cartao_indicador small {
-    font-size: 13px;
+    font-size: 15px;
     opacity: 0.85;
 }
 
@@ -387,6 +396,30 @@ h1 {
     line-height: 1.35;
     font-variant-numeric: tabular-nums;
     overflow-wrap: anywhere;
+}
+
+.cabecalho_indicador {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+}
+
+.cabecalho_indicador span {
+    min-width: 0;
+    flex-direction: column;
+}
+
+.cabecalho_indicador a {
+    flex-shrink: 0;
+    line-height: 0;
+}
+
+.cabecalho_indicador img {
+    width: 30px;
+    height: auto;
+    object-fit: contain;
 }
 
 .indicador_centralizado {
@@ -584,6 +617,7 @@ h1 {
     gap: 12px;
 }
 
+.botao_ancoras, 
 .botao_alertas {
     display: inline-flex;
     align-items: center;
@@ -596,6 +630,7 @@ h1 {
     text-decoration: none;
 }
 
+.botao_ancoras span, 
 .botao_alertas span {
     margin-right: 6px;
     font-size: 22px;
