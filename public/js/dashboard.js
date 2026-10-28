@@ -283,8 +283,8 @@ function atualizarIndicadoresDestinos(dadosVoos) {
         : 'Sem dados para este filtro');
     definirTexto('kpi_estado_destaque', nomeEstadoDestaque ? nomeEstadoDestaque[1] : 'Sem dados');
     definirTexto('kpi_estado_destaque_detalhe', `${formatarQuantidade(totaisEstado[melhorEstado] || 0)} voos no período`);
-    definirTexto('kpi_faturamento', formatarReais(totalVoos * 350));
-    definirTexto('kpi_faturamento_detalhe', `${formatarQuantidade(totalVoos)} voos · R$ 350 por voo · ${obterTextoDoPeriodo(filtro)}`);
+    definirTexto('kpi_faturamento', formatarReais(totalVoos * 660.54));
+    definirTexto('kpi_faturamento_detalhe', `${formatarQuantidade(totalVoos)} voos · R$ 660,54 por voo (Fonte: Anac) · ${obterTextoDoPeriodo(filtro)}`);
 }
 
 function atualizarIndicadoresCompanhias(dadosVoos, dadosReclamacoes) {
