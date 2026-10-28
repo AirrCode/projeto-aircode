@@ -110,7 +110,11 @@
 
                     setTimeout(function () {
                         console.log('vou redirecionar')
-                        window.location = "dashboard.html";
+                        if (json.email == "aircode@sptech.com") {
+                            window.location = "admin_aprovacoes.html";
+                        } else {
+                            window.location = "dashboard.html";
+                        }
                     }, 1000); 
 
                 });

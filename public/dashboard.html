@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="assets/icon/logo.png" type="image/png">
     <link rel="stylesheet" href="css/style_dashboards.css">
+    <link rel="stylesheet" href="css/chatbot.css">
     <title>Aircode | Dashboard</title>
 </head>
 
@@ -151,12 +152,26 @@
             <div id="lista_filtros" class="lista_filtros"></div>
         </section>
     </div>
+        <button class="botao_chat" id="botao_chat" type="button" aria-label="Abrir assistente">💬</button>
+
+    <section class="janela_chat" id="janela_chat" hidden>
+        <header class="topo_chat">
+            <strong>Assistente Aircode</strong>
+            <button class="botao_fechar_chat" id="botao_fechar_chat" type="button" aria-label="Fechar">×</button>
+        </header>
+        <div class="mensagens_chat" id="mensagens_chat"></div>
+        <form class="formulario_chat" id="formulario_chat">
+            <input id="campo_chat" type="text" placeholder="Pergunte sobre a dashboard" maxlength="500" autocomplete="off" required>
+            <button type="submit" id="botao_enviar_chat">Enviar</button>
+        </form>
+    </section>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="js/bibliotecas/html2canvas.min.js"></script>
     <script src="js/bibliotecas/jspdf.umd.min.js"></script>
     <script src="js/dashboard.js"></script>
+    <script src="js/chatbot.js"></script>
 </body>
 
 </html>
