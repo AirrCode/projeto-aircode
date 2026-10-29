@@ -321,7 +321,7 @@ function atualizarIndicadoresCompanhias(dadosVoos, dadosReclamacoes) {
     const textoCompanhias = companhiasVisiveis.length === 1 ? '1 companhia' : `${companhiasVisiveis.length} companhias`;
     definirTexto('kpi_avaliacao_detalhe', `${textoCompanhias} · ${obterTextoDoPeriodo(filtro)}`);
     definirTexto('kpi_resolucao', totalReclamacoes ? `${Math.round((totalResolvidas / totalReclamacoes) * 100)}%` : '—');
-    definirTexto('kpi_resolucao_detalhe', totalReclamacoes ? 'das reclamações estimadas foram resolvidas' : 'Sem reclamações neste período');
+    definirTexto('kpi_resolucao_detalhe', totalReclamacoes ? 'das reclamações estimadas foram resolvidas em 5 dias' : 'Sem reclamações neste período');
     definirTexto('kpi_reclamacoes', formatarQuantidade(totalReclamacoes));
     definirTexto('kpi_reclamacoes_detalhe', `estimativa · ${obterTextoDoPeriodo(filtro)}`);
     definirTexto('kpi_problema', problemaMaisFrequente || 'Sem dados');
