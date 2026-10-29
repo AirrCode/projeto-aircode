@@ -29,7 +29,7 @@
 
 .linha_funcionario {
     display: grid;
-    grid-template-columns: 1.4fr 1.6fr 1fr 190px;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.6fr) minmax(0, 1fr) minmax(160px, auto);
     align-items: center;
     gap: 16px;
     padding: 18px 26px;
@@ -50,8 +50,10 @@
 }
 
 .linha_funcionario span {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+    overflow-wrap: anywhere;
 }
 
 .linha_funcionario:not(.cabecalho_tabela) span:not(.coluna_acoes) {
@@ -84,7 +86,9 @@
     }
 
     .linha_funcionario {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+        padding: 16px;
     }
 
     .cabecalho_tabela {
@@ -94,5 +98,38 @@
     .coluna_acoes {
         grid-column: 1 / -1;
         justify-content: flex-start;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .busca_funcionarios {
+        display: block;
+        flex: 1 0 100%;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        order: 3;
+    }
+
+    .busca_funcionarios input {
+        min-height: 44px;
+    }
+
+    .linha_funcionario:not(.cabecalho_tabela) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+        padding: 14px;
+    }
+
+    .linha_funcionario:not(.cabecalho_tabela) span:not(.coluna_acoes) {
+        white-space: normal;
+    }
+
+    .coluna_acoes {
+        flex-wrap: wrap;
+    }
+
+    .mensagem_tabela {
+        padding: 24px 16px;
     }
 }
