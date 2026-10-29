@@ -488,6 +488,52 @@ h1 {
     overflow-wrap: anywhere;
 }
 
+.periodo_kpi {
+    width: 100%;
+    margin: 0;
+    text-align: center;
+}
+
+.fundo_popup_alerta {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: #080f24a8;
+}
+
+.popup_alerta {
+    width: min(100%, 440px);
+    padding: 28px;
+    border-radius: 18px;
+    background: #ffffff;
+    color: #0C1B4D;
+    box-shadow: 0 20px 60px #080f2440;
+}
+
+.popup_alerta h2 {
+    margin: 8px 0 12px;
+    overflow-wrap: anywhere;
+}
+
+.popup_alerta p {
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.popup_alerta button {
+    margin-top: 22px;
+    padding: 11px 20px;
+    border: 0;
+    border-radius: 8px;
+    background: #1B39D6;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
 .cabecalho_indicador {
     display: flex;
     align-items: center;

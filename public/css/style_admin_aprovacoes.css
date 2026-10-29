@@ -25,11 +25,13 @@ body {
    -------------------------------------------------------------------------- */
 .sidebar {
     width: 260px;
+    flex: 0 0 260px;
     background-color: #100B4D;
     color: #ffffff;
     padding: 30px 20px;
     position: fixed;
     height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     z-index: 10;
@@ -128,6 +130,7 @@ body {
     margin-left: 260px;
     padding: 40px 30px;
     width: calc(100% - 260px);
+    min-width: 0;
 }
 
 .container {
@@ -359,6 +362,7 @@ details[open] .seta {
     .sidebar {
         position: static;
         width: 100%;
+        flex: 0 0 auto;
         height: auto;
         padding: 16px;
         gap: 12px;

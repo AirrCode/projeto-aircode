@@ -131,8 +131,14 @@ function configurarTipoFiltro() {
     renderizarItensComparacao('estados_selecionados', estadosSelecionados, 'estado_filtro', 'TODOS', 'Todos os estados');
     renderizarItensComparacao('companhias_selecionadas', companhiasSelecionadas, 'companhia_filtro', 'TODAS', 'Todas as companhias');
     document.getElementById('problema_filtro').value = filtro.problema || 'TODOS';
-    document.getElementById('data_inicial_filtro').value = filtro.dataInicial || '';
-    document.getElementById('data_final_filtro').value = filtro.dataFinal || '';
+    const periodoLegado = filtro.dataInicial === '2025-01-01'
+        && filtro.dataFinal === '2025-12-31';
+    document.getElementById('data_inicial_filtro').value = periodoLegado
+        ? '2025-10-01'
+        : filtro.dataInicial || '';
+    document.getElementById('data_final_filtro').value = periodoLegado
+        ? '2025-10-31'
+        : filtro.dataFinal || '';
     document.querySelector('.botao_salvar_filtro').textContent = 'Salvar alterações';
 }
 

@@ -63,6 +63,35 @@ CREATE TABLE metrica_kpi (
     CONSTRAINT fk_metrica_usuario FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS ancora_dashboard (
+    id_ancora INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    nome_ancora VARCHAR(100) NOT NULL,
+    indicador_alvo VARCHAR(50) NOT NULL,
+    estado CHAR(2) NULL,
+    posicao_top INT NULL,
+    valor_alvo DECIMAL(12,2) NULL,
+    operador_comparacao VARCHAR(5) NOT NULL DEFAULT '>=',
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ancora_dashboard_usuario
+        FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS alerta_dashboard (
+    id_alerta INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    id_ancora INT NOT NULL,
+    nome_alerta VARCHAR(100) NOT NULL,
+    filtro_json LONGTEXT NULL,
+    mensagem_alerta TEXT NOT NULL,
+    status_alerta BOOLEAN NOT NULL DEFAULT TRUE,
+    ja_disparado BOOLEAN NOT NULL DEFAULT FALSE,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_alerta_dashboard_usuario
+        FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE,
+    CONSTRAINT fk_alerta_dashboard_ancora
+        FOREIGN KEY (id_ancora) REFERENCES ancora_dashboard(id_ancora) ON DELETE CASCADE
+);
 
 CREATE TABLE companhia (
     id_companhia INT AUTO_INCREMENT PRIMARY KEY,
@@ -78,6 +107,7 @@ CREATE TABLE aeroporto (
     sigla_icao_iata VARCHAR(10) NOT NULL UNIQUE,
     nome_aeroporto VARCHAR(100) NOT NULL,
     uf VARCHAR(2) NULL,
+    nome_estado VARCHAR(50) NULL,
     regiao VARCHAR(30) NULL,
     pais VARCHAR(50) NOT NULL DEFAULT 'BRASIL',
     continente VARCHAR(50) NULL
@@ -101,6 +131,7 @@ CREATE TABLE voo_mensal (
     mes INT NOT NULL CHECK (mes BETWEEN 1 AND 12),
     grupo_voo VARCHAR(30) NULL,
     passageiros_pagos INT NOT NULL DEFAULT 0,
+    passageiros_gratis int NOT NULL DEFAULT 0,
     assentos_ofertados INT NOT NULL DEFAULT 0,
     decolagens INT NOT NULL DEFAULT 0,
     CONSTRAINT fk_voo_companhia FOREIGN KEY (id_companhia) REFERENCES companhia(id_companhia),
@@ -146,5 +177,4 @@ VALUES (
     'ADMIN_MASTER',
     TRUE
 );
-
 

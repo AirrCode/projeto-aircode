@@ -76,7 +76,7 @@
                     <div class="cartao_conteudo">
                         <strong id="kpi_destinos_valor"></strong>
                     </div>
-                    <p style="margin-left: 150px;">Out - 2026</p>
+                    <p class="periodo_kpi" data-periodo-kpi="destinos"></p>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
@@ -90,7 +90,7 @@
                         <strong id="kpi_estado_destaque"></strong>
                         <small id="kpi_estado_destaque_detalhe"></small>
                     </div>
-                    <p>Set - 2026 | Out - 2026</p>
+                    <p class="periodo_kpi" data-periodo-comparativo="destinos"></p>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
@@ -104,7 +104,7 @@
                         <strong id="kpi_faturamento"></strong>
                         <small id="kpi_faturamento_detalhe"></small>
                     </div>
-                    <p>Out - 2026</p>
+                    <p class="periodo_kpi" data-periodo-kpi="destinos"></p>
                 </article>
             </div>
 
@@ -140,7 +140,7 @@
                         <strong id="kpi_avaliacao"></strong>
                         <small id="kpi_avaliacao_detalhe"></small>
                     </div>
-                    <p>Out - 2026</p>
+                    <p class="periodo_kpi" data-periodo-kpi="companhias"></p>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
@@ -154,7 +154,7 @@
                         <strong id="kpi_resolucao"></strong>
                         <small id="kpi_resolucao_detalhe"></small>
                     </div>
-                    <p>Out - 2026</p>
+                    <p class="periodo_kpi" data-periodo-kpi="companhias"></p>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
@@ -168,7 +168,7 @@
                         <strong id="kpi_reclamacoes"></strong>
                         <small id="kpi_reclamacoes_detalhe"></small>
                     </div>
-                    <p>Out - 2026</p>
+                    <p class="periodo_kpi" data-periodo-kpi="companhias"></p>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
@@ -182,7 +182,7 @@
                         <strong id="kpi_problema"></strong>
                         <small id="kpi_problema_detalhe"></small>
                     </div>
-                    <p>Out - 2026</p>
+                    <p class="periodo_kpi" data-periodo-kpi="companhias"></p>
                 </article>
             </div>
 
@@ -204,6 +204,15 @@
             </div>
         </section>
     </main>
+
+    <div class="fundo_popup_alerta" id="popup_alerta" hidden>
+        <section class="popup_alerta" role="alertdialog" aria-modal="true" aria-labelledby="popup_titulo">
+            <p class="texto_pequeno">Meta atingida</p>
+            <h2 id="popup_titulo"></h2>
+            <p id="popup_mensagem"></p>
+            <button type="button" id="fechar_popup_alerta">Entendi</button>
+        </section>
+    </div>
 
     <div class="fundo_modal" id="modal_filtros" hidden>
         <section class="modal_filtros" role="dialog" aria-modal="true" aria-labelledby="titulo_filtros">
