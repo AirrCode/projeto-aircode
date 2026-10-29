@@ -8,11 +8,13 @@
 html,
 body {
     height: 100%;
+    min-height: 100%;
 }
 
 .container {
     display: flex;
     min-height: 100vh;
+    min-height: 100dvh;
 }
 
 .formulario_lado {
@@ -66,6 +68,7 @@ body {
 
 .campo input,
 .campo select {
+    width: 100%;
     padding: 14px 16px;
     border-radius: 8px;
     border: 1px solid #ffffff40;
@@ -157,7 +160,8 @@ body {
     .formulario_lado {
         width: 100%;
         min-height: 100vh;
-        padding: 80px 24px 40px;
+        min-height: 100dvh;
+        padding: 76px 24px max(32px, env(safe-area-inset-bottom));
     }
 
     .voltar {
@@ -171,5 +175,30 @@ body {
 
     .formulario h2 {
         font-size: 26px;
+    }
+
+    .campo {
+        min-width: 0;
+    }
+
+    .campo input,
+    .campo select {
+        min-height: 46px;
+        font-size: 16px;
+    }
+
+    .botao_entrar {
+        min-height: 48px;
+    }
+}
+
+@media screen and (max-width: 380px) {
+    .formulario_lado {
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+
+    .formulario {
+        gap: 14px;
     }
 }

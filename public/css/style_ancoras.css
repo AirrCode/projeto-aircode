@@ -1,5 +1,6 @@
 body {
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -100,6 +101,7 @@ body {
 
 .tabela-historico {
     width: 100%;
+    min-width: 680px;
     border-collapse: separate;
     border-spacing: 0;
     margin-top: 24px;
@@ -217,4 +219,44 @@ body {
     padding: 40px 20px !important;
     font-size: 14px;
     font-weight: 500;
+}
+
+@media screen and (max-width: 600px) {
+    .area_ancoras {
+        width: calc(100% - 28px);
+        margin: 20px auto;
+        padding: 22px 16px;
+        border-radius: 12px;
+    }
+
+    #formulario_ancora h2,
+    .area_ancoras > h2 {
+        font-size: 21px;
+        line-height: 1.3;
+    }
+
+    #form_ancora {
+        gap: 16px;
+    }
+
+    #form_ancora input,
+    #form_ancora select,
+    #form_ancora button {
+        min-height: 46px;
+        font-size: 16px;
+    }
+
+    .tabela-historico {
+        margin-top: 16px;
+    }
+
+    .tabela-historico th,
+    .tabela-historico td {
+        padding: 12px;
+    }
+
+    .acoes-tabela button {
+        min-height: 40px;
+        margin: 2px;
+    }
 }

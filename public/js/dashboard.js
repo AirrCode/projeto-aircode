@@ -5,6 +5,15 @@ const cores = {
     amarelo: '#F5C518',
     cinza: '#76809c'
 };
+const coresCompanhias = {
+    LATAM: cores.marinho,
+    GOL: cores.azul,
+    Azul: cores.amarelo
+};
+
+function obterCorCompanhia(nome) {
+    return coresCompanhias[nome] || cores.cinza;
+}
 
 const meses = [
     { numero: 1, dias: 31, peso: 0.78 },
@@ -104,10 +113,12 @@ function obterFracaoDoMes(mes, filtro) {
 
 function obterDadosDeVoosFiltrados(tipoPainel) {
     const filtro = obterFiltroAtual(tipoPainel);
+    const estadosSelecionados = obterEstadosDoFiltro(filtro);
+    const companhiasSelecionadas = obterCompanhiasDoFiltro(filtro);
 
     return dadosDeVoos.filter(function (linha) {
-        const estadoCombina = !filtro || filtro.estado === 'TODOS' || filtro.estado === linha.estado;
-        const companhiaCombina = !filtro || filtro.companhia === 'TODAS' || filtro.companhia === linha.companhia;
+        const estadoCombina = estadosSelecionados.length === 0 || estadosSelecionados.includes(linha.estado);
+        const companhiaCombina = companhiasSelecionadas.length === 0 || companhiasSelecionadas.includes(linha.companhia);
         return estadoCombina && companhiaCombina && obterFracaoDoMes(linha.mes, filtro) > 0;
     }).map(function (linha) {
         return {
@@ -335,13 +346,17 @@ function atualizarTitulos(tipoPainel) {
     const partesVoos = [];
     const partesReclamacoes = [];
 
-    if (filtro && filtro.estado !== 'TODOS') {
-        partesVoos.push(obterNomeEstado(filtro.estado));
-        partesReclamacoes.push(obterNomeEstado(filtro.estado));
+    const estadosSelecionados = obterEstadosDoFiltro(filtro);
+    const companhiasSelecionadas = obterCompanhiasDoFiltro(filtro);
+    if (estadosSelecionados.length) {
+        const nomesEstados = estadosSelecionados.map(obterNomeEstado).join(', ');
+        partesVoos.push(nomesEstados);
+        partesReclamacoes.push(nomesEstados);
     }
-    if (tipoPainel === 'companhias' && filtro && filtro.companhia !== 'TODAS') {
-        partesVoos.push(filtro.companhia);
-        partesReclamacoes.push(filtro.companhia);
+    if (tipoPainel === 'companhias' && companhiasSelecionadas.length) {
+        const nomesCompanhias = companhiasSelecionadas.join(', ');
+        partesVoos.push(nomesCompanhias);
+        partesReclamacoes.push(nomesCompanhias);
     }
     if (tipoPainel === 'companhias' && filtro && filtro.problema !== 'TODOS') {
         partesReclamacoes.push(filtro.problema);
@@ -381,9 +396,10 @@ function renderizarGraficos() {
     }
 
     const voosPorEstado = somarPor(dadosVoos, 'estado', 'voos');
-    const estadosOrdenados = Object.keys(voosPorEstado).sort(function (a, b) {
+    const estadosSelecionados = obterEstadosDoFiltro(filtro);
+    const estadosOrdenados = (estadosSelecionados.length ? estadosSelecionados : Object.keys(voosPorEstado)).sort(function (a, b) {
         return voosPorEstado[b] - voosPorEstado[a];
-    }).slice(0, 8);
+    }).slice(0, estadosSelecionados.length || 8);
     const voosPorCompanhia = somarPor(dadosVoos, 'companhia', 'voos');
     const reclamacoesPorCompanhia = somarPor(dadosReclamacoes, 'companhia', 'quantidade');
     const reclamacoesPorProblema = somarPor(dadosReclamacoes, 'problema', 'quantidade');
@@ -391,8 +407,12 @@ function renderizarGraficos() {
         return codigo;
     });
     const voosEstado = estadosOrdenados.map(function (codigo) {
-        return voosPorEstado[codigo];
+        return voosPorEstado[codigo] || 0;
     });
+    const compararEstados = estadosSelecionados.length > 1;
+    document.getElementById('grafico_origem_destino').parentElement.style.height = compararEstados
+        ? `${Math.max(260, estadosOrdenados.length * 34)}px`
+        : '';
 
     criarGrafico('grafico_origem_destino', 'bar', {
         labels: estadosLabel,
@@ -404,6 +424,7 @@ function renderizarGraficos() {
             maxBarThickness: 44
         }]
     }, {
+        indexAxis: compararEstados ? 'y' : 'x',
         plugins: {
             legend: { display: false },
             tooltip: {
@@ -416,13 +437,19 @@ function renderizarGraficos() {
         }
     });
 
+    const companhiasVisiveis = companhiasBase.filter(function (companhia) {
+        return (voosPorCompanhia[companhia.nome] || 0) > 0;
+    });
+
     criarGrafico('grafico_origem_bahia', 'doughnut', {
-        labels: companhiasBase.map(function (companhia) { return companhia.nome; }),
+        labels: companhiasVisiveis.map(function (companhia) { return companhia.nome; }),
         datasets: [{
-            data: companhiasBase.map(function (companhia) {
+            data: companhiasVisiveis.map(function (companhia) {
                 return voosPorCompanhia[companhia.nome] || 0;
             }),
-            backgroundColor: [cores.marinho, cores.azul, cores.amarelo],
+            backgroundColor: companhiasVisiveis.map(function (companhia) {
+                return obterCorCompanhia(companhia.nome);
+            }),
             borderColor: '#f5f6fa',
             borderWidth: 3
         }]
@@ -437,7 +464,7 @@ function renderizarGraficos() {
         }
     });
 
-    const companhiasSelecionadas = companhiasBase.filter(function (companhia) {
+    const companhiasComDados = companhiasBase.filter(function (companhia) {
         return (voosPorCompanhia[companhia.nome] || 0) > 0;
     });
     const problemaSelecionado = filtro && filtro.problema !== 'TODOS';
@@ -450,18 +477,22 @@ function renderizarGraficos() {
 
     criarGrafico('grafico_problemas', problemaSelecionado ? 'bar' : 'pie', {
         labels: problemaSelecionado
-            ? companhiasSelecionadas.map(function (companhia) { return companhia.nome; })
+            ? companhiasComDados.map(function (companhia) { return companhia.nome; })
             : problemas,
         datasets: [{
             label: problemaSelecionado ? 'Reclamações' : 'Reclamações estimadas',
             data: problemaSelecionado
-                ? companhiasSelecionadas.map(function (companhia) {
+                ? companhiasComDados.map(function (companhia) {
                     return dadosReclamacoes.filter(function (linha) {
                         return linha.companhia === companhia.nome && linha.problema === filtro.problema;
                     }).reduce(function (total, linha) { return total + linha.quantidade; }, 0);
                 })
                 : valoresProblemas,
-            backgroundColor: [cores.marinho, '#7d86a3', cores.azul, cores.amarelo],
+            backgroundColor: problemaSelecionado
+                ? companhiasComDados.map(function (companhia) {
+                    return obterCorCompanhia(companhia.nome);
+                })
+                : [cores.marinho, '#7d86a3', cores.azul, cores.amarelo],
             borderColor: '#f5f6fa',
             borderWidth: 3
         }]
@@ -476,13 +507,15 @@ function renderizarGraficos() {
     });
 
     criarGrafico('grafico_assentos', 'bar', {
-        labels: companhiasSelecionadas.map(function (companhia) { return companhia.nome; }),
+        labels: companhiasComDados.map(function (companhia) { return companhia.nome; }),
         datasets: [{
             label: 'Voos',
-            data: companhiasSelecionadas.map(function (companhia) {
+            data: companhiasComDados.map(function (companhia) {
                 return voosPorCompanhia[companhia.nome] || 0;
             }),
-            backgroundColor: cores.marinho,
+            backgroundColor: companhiasComDados.map(function (companhia) {
+                return obterCorCompanhia(companhia.nome);
+            }),
             borderRadius: 5,
             maxBarThickness: 42
         }]
@@ -493,22 +526,26 @@ function renderizarGraficos() {
     });
 
     criarGrafico('grafico_resolucao', 'bar', {
-        labels: companhiasSelecionadas.map(function (companhia) { return companhia.nome; }),
+        labels: companhiasComDados.map(function (companhia) { return companhia.nome; }),
         datasets: [
             {
                 label: 'Resolvido (%)',
-                data: companhiasSelecionadas.map(function (companhia) {
+                data: companhiasComDados.map(function (companhia) {
                     return obterPercentualResolucao(companhia, dadosReclamacoes);
                 }),
-                backgroundColor: cores.azul,
+                backgroundColor: companhiasComDados.map(function (companhia) {
+                    return obterCorCompanhia(companhia.nome);
+                }),
                 borderRadius: 4
             },
             {
                 label: 'Não resolvido (%)',
-                data: companhiasSelecionadas.map(function (companhia) {
+                data: companhiasComDados.map(function (companhia) {
                     return 100 - obterPercentualResolucao(companhia, dadosReclamacoes);
                 }),
-                backgroundColor: '#b9bfd0',
+                backgroundColor: companhiasComDados.map(function () {
+                    return '#b9bfd0';
+                }),
                 borderRadius: 4
             }
         ]
@@ -577,11 +614,20 @@ function desenharMapa() {
         tooltip: { textStyle: { color: cores.marinho } }
     });
 
-    const estadoFiltrado = filtro && filtro.estado !== 'TODOS'
-        ? estadosBrasil.find(function (estado) { return estado[0] === `BR-${filtro.estado}`; })
-        : null;
-    if (estadoFiltrado) {
-        atualizarResumoMapa(estadoFiltrado[1], totaisPorEstado[filtro.estado] || 0);
+    const estadosSelecionados = obterEstadosDoFiltro(filtro);
+    if (estadosSelecionados.length === 1) {
+        const estadoFiltrado = estadosBrasil.find(function (estado) {
+            return estado[0] === `BR-${estadosSelecionados[0]}`;
+        });
+        if (estadoFiltrado) {
+            atualizarResumoMapa(estadoFiltrado[1], totaisPorEstado[estadosSelecionados[0]] || 0);
+        }
+    } else if (estadosSelecionados.length > 1) {
+        const totalEstadosSelecionados = estadosSelecionados.reduce(function (total, codigo) {
+            return total + (totaisPorEstado[codigo] || 0);
+        }, 0);
+        document.getElementById('resumo_mapa').textContent =
+            `${estadosSelecionados.map(obterNomeEstado).join(', ')}: ${formatarQuantidade(totalEstadosSelecionados)} voos para comparação.`;
     } else {
         const estadoDestaque = Object.keys(totaisPorEstado).sort(function (a, b) {
             return totaisPorEstado[b] - totaisPorEstado[a];
@@ -628,6 +674,57 @@ function obterNomeEstado(codigoEstado) {
     return estado ? estado[1] : codigoEstado;
 }
 
+function normalizarListaEstados(estados) {
+    if (!Array.isArray(estados)) {
+        return [];
+    }
+
+    return estados.map(function (codigo) {
+        const estado = estadosBrasil.find(function (item) {
+            return item[0] === `BR-${codigo}` || item[1] === codigo;
+        });
+        return estado ? estado[0].replace('BR-', '') : codigo;
+    }).filter(function (codigo, indice, lista) {
+        return codigo && lista.indexOf(codigo) === indice;
+    });
+}
+
+function obterEstadosDoFiltro(filtro) {
+    if (!filtro) {
+        return [];
+    }
+
+    const estados = normalizarListaEstados(filtro.estados);
+    if (estados.length) {
+        return estados;
+    }
+
+    const estadoLegado = filtro.estado;
+    if (!estadoLegado || estadoLegado === 'TODOS' || estadoLegado === 'Todos os estados') {
+        return [];
+    }
+
+    return normalizarListaEstados([estadoLegado]);
+}
+
+function obterCompanhiasDoFiltro(filtro) {
+    if (!filtro) {
+        return [];
+    }
+
+    const companhias = Array.isArray(filtro.companhias) ? filtro.companhias : [];
+    if (companhias.length) {
+        return companhias.filter(function (nome, indice, lista) {
+            return nome !== 'TODAS' && lista.indexOf(nome) === indice;
+        });
+    }
+
+    const companhiaLegada = filtro.companhia;
+    return !companhiaLegada || companhiaLegada === 'TODAS' || companhiaLegada === 'Todas as companhias'
+        ? []
+        : [companhiaLegada];
+}
+
 function normalizarFiltro(filtro, tipoPainel) {
     filtro = Object.assign({}, filtro);
     if (filtro.estado === 'Todos os estados') {
@@ -640,17 +737,14 @@ function normalizarFiltro(filtro, tipoPainel) {
         filtro.problema = 'TODOS';
     }
 
-    const estadoEncontrado = estadosBrasil.find(function (estado) {
-        return estado[1] === filtro.estado;
-    });
-
-    if (estadoEncontrado) {
-        filtro.estado = estadoEncontrado[0].replace('BR-', '');
-    }
-
     filtro.tipo = filtro.tipo || tipoPainel;
-    filtro.nomeEstado = filtro.nomeEstado || obterNomeEstado(filtro.estado);
-    filtro.companhia = filtro.companhia || 'TODAS';
+    filtro.estados = obterEstadosDoFiltro(filtro);
+    filtro.estado = filtro.estados.length === 1 ? filtro.estados[0] : 'TODOS';
+    filtro.nomeEstado = filtro.estados.length
+        ? filtro.estados.map(obterNomeEstado).join(', ')
+        : 'Todos os estados';
+    filtro.companhias = obterCompanhiasDoFiltro(filtro);
+    filtro.companhia = filtro.companhias.length === 1 ? filtro.companhias[0] : 'TODAS';
     filtro.problema = filtro.problema || 'TODOS';
     filtro.dataInicial = filtro.dataInicial || '';
     filtro.dataFinal = filtro.dataFinal || '';
@@ -670,7 +764,20 @@ function mostrarFiltroAtivo(tipoPainel) {
     }
 
     aviso.hidden = false;
-    textoAviso.textContent = `Filtro ativo: ${filtro.nome}`;
+    const estadosSelecionados = obterEstadosDoFiltro(filtro);
+    const detalhesFiltro = [
+        estadosSelecionados.length
+            ? estadosSelecionados.map(obterNomeEstado).join(', ')
+            : 'Todos os estados'
+    ];
+    if (tipoPainel === 'companhias') {
+        const companhiasSelecionadas = obterCompanhiasDoFiltro(filtro);
+        detalhesFiltro.push(companhiasSelecionadas.length ? companhiasSelecionadas.join(', ') : 'Todas as companhias');
+        if (filtro.problema !== 'TODOS') {
+            detalhesFiltro.push(filtro.problema);
+        }
+    }
+    textoAviso.textContent = `Filtro ativo: ${filtro.nome} · ${detalhesFiltro.join(' · ')}`;
     document.getElementById('botao_editar_filtro').hidden = false;
 }
 
@@ -704,9 +811,14 @@ function mostrarFiltrosSalvos() {
 
     filtrosSalvos.forEach(function (filtroSalvo, indice) {
         const filtro = normalizarFiltro(filtroSalvo, tipoPainel);
+        const companhiasSelecionadas = obterCompanhiasDoFiltro(filtro);
         const textoCompanhia = tipoPainel === 'companhias'
-            ? ` · ${filtro.companhia === 'TODAS' ? 'Todas as companhias' : filtro.companhia}`
+            ? ` · ${companhiasSelecionadas.length ? companhiasSelecionadas.join(', ') : 'Todas as companhias'}`
             : '';
+        const estadosSelecionados = obterEstadosDoFiltro(filtro);
+        const textoEstado = estadosSelecionados.length
+            ? estadosSelecionados.map(obterNomeEstado).join(', ')
+            : 'Todos os estados';
         const textoProblema = tipoPainel === 'companhias'
             ? ` · ${filtro.problema === 'TODOS' ? 'Todos os problemas' : filtro.problema}`
             : '';
@@ -724,7 +836,7 @@ function mostrarFiltrosSalvos() {
         const botaoExcluir = document.createElement('button');
 
         nomeFiltro.textContent = filtro.nome;
-        resumoFiltro.textContent = `${obterNomeEstado(filtro.estado)}${textoCompanhia}${textoProblema}${textoPeriodo}`;
+        resumoFiltro.textContent = `${textoEstado}${textoCompanhia}${textoProblema}${textoPeriodo}`;
         acoesFiltro.className = 'acoes_filtro_salvo';
         botaoAplicar.className = 'botao_aplicar_filtro';
         botaoAplicar.type = 'button';

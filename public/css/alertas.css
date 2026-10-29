@@ -15,6 +15,7 @@
 
 body {
     min-height: 100vh;
+    min-height: 100dvh;
     background-color: #f7f8fb;
     color: #0C1B4D;
 }
@@ -75,7 +76,8 @@ h1 {
 
 .logo_dashboard img {
     width: auto;
-    height: 44px;
+    height: 100px;
+    max-width: min(32vw, 190px);
 }
 
 .acoes_cabecalho {
@@ -468,6 +470,110 @@ h1 {
 
     .busca_alertas {
         max-width: none;
+    }
+}
+
+@media screen and (max-width: 760px) {
+    .cabecalho_dashboard {
+        height: auto;
+        min-height: 68px;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        padding: 10px 20px;
+    }
+
+    .logo_dashboard {
+        height: 44px;
+        flex: 0 0 auto;
+    }
+
+    .logo_dashboard img {
+        height: 44px;
+        max-width: 150px;
+    }
+
+    .acoes_cabecalho {
+        min-width: 0;
+        flex: 1 1 auto;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .principal_alerta {
+        width: 100%;
+        padding: 30px 20px 56px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .cabecalho_dashboard {
+        padding: 10px 14px;
+    }
+
+    .logo_dashboard,
+    .logo_dashboard img {
+        height: 38px;
+    }
+
+    .logo_dashboard img {
+        max-width: 118px;
+    }
+
+    .acoes_cabecalho {
+        gap: 6px;
+    }
+
+    .link_voltar_dashboard {
+        max-width: 190px;
+        padding: 8px 10px;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .principal_alerta {
+        padding: 26px 16px 44px;
+    }
+
+    .principal_alerta h1 {
+        margin-bottom: 28px;
+        font-size: clamp(30px, 9vw, 38px);
+    }
+
+    .formulario_alerta {
+        gap: 20px;
+    }
+
+    .formulario_alerta input,
+    .formulario_alerta select,
+    .busca_alertas {
+        min-height: 46px;
+        font-size: 16px;
+    }
+
+    .botao_enviar_alerta {
+        width: 100%;
+        min-height: 46px;
+    }
+
+    .topo_alertas {
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .tabela_alertas_area {
+        border-radius: 12px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tabela_alertas {
+        min-width: 640px;
+    }
+
+    .tabela_alertas th,
+    .tabela_alertas td {
+        padding: 12px;
+        font-size: 13px;
     }
 }
 

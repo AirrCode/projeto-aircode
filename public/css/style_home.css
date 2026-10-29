@@ -230,7 +230,7 @@ a {
 
 .solucoes_grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 50px 40px;
 }
 
@@ -271,6 +271,18 @@ a {
 
     background-color: #BFE0F5;
     padding: 60px 100px;
+}
+
+.inicio h1,
+.sobre_texto h2,
+.solucoes h2 {
+    text-wrap: balance;
+}
+
+.inicio p,
+.sobre_texto p,
+.solucao_item p {
+    line-height: 1.6;
 }
 
 .footer1 img {
@@ -348,7 +360,7 @@ a {
     }
 
     .solucoes_grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 30px;
     }
 
@@ -459,3 +471,80 @@ header {
     }
 }
 
+@media screen and (max-width: 480px) {
+    header {
+        gap: 10px;
+        padding: 12px 16px;
+    }
+
+    .logo {
+        height: auto;
+        max-width: 100%;
+    }
+
+    .logo img {
+        width: auto;
+        max-width: min(72vw, 220px);
+        height: auto;
+        max-height: 64px;
+    }
+
+    .navbar {
+        width: 100%;
+        gap: 8px 16px;
+        font-size: 14px;
+    }
+
+    .div_botoes_header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .botao1,
+    .botao2 {
+        min-height: 44px;
+        padding: 10px 14px;
+    }
+
+    .inicio {
+        padding: 34px 18px 48px;
+    }
+
+    .inicio h1 {
+        font-size: clamp(30px, 9vw, 38px);
+    }
+
+    .sobre_titulo p {
+        font-size: 22px;
+    }
+
+    .sobre_texto h2 {
+        font-size: 23px;
+    }
+
+    .sobre_imagem img {
+        border-radius: 12px;
+    }
+
+    .valores {
+        gap: 24px;
+    }
+
+    .solucoes_grid {
+        gap: 24px;
+    }
+
+    .footer {
+        gap: 28px;
+    }
+
+    .contato_item {
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .contato_item p {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+}

@@ -47,8 +47,12 @@ function montarContextoDashboard() {
         periodo: obterTextoDoPeriodo(filtro),
         filtro_ativo: filtro ? {
             nome: filtro.nome,
-            estado: obterNomeEstado(filtro.estado),
-            companhia: filtro.companhia,
+            estado: obterEstadosDoFiltro(filtro).length
+                ? obterEstadosDoFiltro(filtro).map(obterNomeEstado).join(", ")
+                : "Todos os estados",
+            companhia: obterCompanhiasDoFiltro(filtro).length
+                ? obterCompanhiasDoFiltro(filtro).join(", ")
+                : "Todas as companhias",
             problema: filtro.problema
         } : null,
         total_voos: Math.round(obterTotalVoos(dadosVoos)),

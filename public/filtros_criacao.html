@@ -38,49 +38,61 @@
                 <div>
                     <h2>Parâmetros da companhia e rota</h2>
 
-                    <label>
-                        Estado de destino (UF)
-                        <select id="estado_filtro">
-                            <option value="TODOS">Todos os estados</option>
-                            <option value="AC">Acre</option>
-                            <option value="AL">Alagoas</option>
-                            <option value="AP">Amapá</option>
-                            <option value="AM">Amazonas</option>
-                            <option value="BA">Bahia</option>
-                            <option value="CE">Ceará</option>
-                            <option value="DF">Distrito Federal</option>
-                            <option value="ES">Espírito Santo</option>
-                            <option value="GO">Goiás</option>
-                            <option value="MA">Maranhão</option>
-                            <option value="MT">Mato Grosso</option>
-                            <option value="MS">Mato Grosso do Sul</option>
-                            <option value="MG">Minas Gerais</option>
-                            <option value="PA">Pará</option>
-                            <option value="PB">Paraíba</option>
-                            <option value="PR">Paraná</option>
-                            <option value="PE">Pernambuco</option>
-                            <option value="PI">Piauí</option>
-                            <option value="RJ">Rio de Janeiro</option>
-                            <option value="RN">Rio Grande do Norte</option>
-                            <option value="RS">Rio Grande do Sul</option>
-                            <option value="RO">Rondônia</option>
-                            <option value="RR">Roraima</option>
-                            <option value="SC">Santa Catarina</option>
-                            <option value="SP">São Paulo</option>
-                            <option value="SE">Sergipe</option>
-                            <option value="TO">Tocantins</option>
-                        </select>
-                    </label>
+                    <div class="campo_comparacao">
+                        <div class="seletor_multiplo">
+                            <label for="estado_filtro">
+                                Estado de destino (UF)
+                                <select id="estado_filtro">
+                                    <option value="TODOS">Todos os estados</option>
+                                    <option value="AC">Acre</option>
+                                    <option value="AL">Alagoas</option>
+                                    <option value="AP">Amapá</option>
+                                    <option value="AM">Amazonas</option>
+                                    <option value="BA">Bahia</option>
+                                    <option value="CE">Ceará</option>
+                                    <option value="DF">Distrito Federal</option>
+                                    <option value="ES">Espírito Santo</option>
+                                    <option value="GO">Goiás</option>
+                                    <option value="MA">Maranhão</option>
+                                    <option value="MT">Mato Grosso</option>
+                                    <option value="MS">Mato Grosso do Sul</option>
+                                    <option value="MG">Minas Gerais</option>
+                                    <option value="PA">Pará</option>
+                                    <option value="PB">Paraíba</option>
+                                    <option value="PR">Paraná</option>
+                                    <option value="PE">Pernambuco</option>
+                                    <option value="PI">Piauí</option>
+                                    <option value="RJ">Rio de Janeiro</option>
+                                    <option value="RN">Rio Grande do Norte</option>
+                                    <option value="RS">Rio Grande do Sul</option>
+                                    <option value="RO">Rondônia</option>
+                                    <option value="RR">Roraima</option>
+                                    <option value="SC">Santa Catarina</option>
+                                    <option value="SP">São Paulo</option>
+                                    <option value="SE">Sergipe</option>
+                                    <option value="TO">Tocantins</option>
+                                </select>
+                            </label>
+                            <button class="botao_adicionar_comparacao" id="adicionar_estado_filtro" type="button">+ Adicionar estado</button>
+                        </div>
+                        <div class="itens_comparacao" id="estados_selecionados" aria-live="polite"></div>
+                    </div>
 
-                    <label id="campo_companhia_filtro">
-                        Companhia aérea
-                        <select id="companhia_filtro">
-                            <option value="TODAS">Todas as companhias</option>
-                            <option value="LATAM">LATAM</option>
-                            <option value="GOL">GOL</option>
-                            <option value="Azul">Azul</option>
-                        </select>
-                    </label>
+                    <div class="campo_comparacao" id="campo_companhia_filtro">
+                        <div class="seletor_multiplo">
+                            <label for="companhia_filtro">
+                                Companhia aérea
+                                <select id="companhia_filtro">
+                                    <option value="TODAS">Todas as companhias</option>
+                                    <option value="LATAM">LATAM</option>
+                                    <option value="GOL">GOL</option>
+                                    <option value="Azul">Azul</option>
+                                </select>
+                            </label>
+                            <button class="botao_adicionar_comparacao" id="adicionar_companhia_filtro" type="button">+ Adicionar companhia</button>
+                        </div>
+                        <div class="itens_comparacao" id="companhias_selecionadas" aria-live="polite"></div>
+                    </div>
 
                     <label id="campo_problema_filtro">
                         Categoria de problema

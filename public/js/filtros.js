@@ -1,9 +1,89 @@
 const parametrosUrl = new URLSearchParams(window.location.search);
 const tipoFiltro = parametrosUrl.get('tipo') || 'destinos';
 const idFiltroEmEdicao = parametrosUrl.get('editar');
+let estadosSelecionados = [];
+let companhiasSelecionadas = [];
 
 function obterChaveFiltro() {
     return tipoFiltro === 'companhias' ? 'filtros_companhias' : 'filtros_destinos';
+}
+
+function obterListaLegada(valor, todos) {
+    if (!valor || valor === todos) {
+        return [];
+    }
+
+    return Array.isArray(valor) ? valor : [valor];
+}
+
+function definirOpcaoDisponivel(seletor, todos, selecionados) {
+    const opcaoDisponivel = Array.from(seletor.options).find(function (opcao) {
+        return opcao.value !== todos && !selecionados.includes(opcao.value);
+    });
+    seletor.value = opcaoDisponivel
+        ? opcaoDisponivel.value
+        : (selecionados.length ? selecionados[0] : todos);
+}
+
+function renderizarItensComparacao(containerId, selecionados, seletorId, todos, nomeTodos) {
+    const container = document.getElementById(containerId);
+    const seletor = document.getElementById(seletorId);
+    container.replaceChildren();
+
+    if (selecionados.length === 0) {
+        const todosSelecionados = document.createElement('span');
+        todosSelecionados.className = 'item_comparacao todos_comparacao';
+        todosSelecionados.textContent = nomeTodos;
+        container.appendChild(todosSelecionados);
+        seletor.value = todos;
+        return;
+    }
+
+    selecionados.forEach(function (valor) {
+        const opcao = Array.from(seletor.options).find(function (item) {
+            return item.value === valor;
+        });
+        if (!opcao) {
+            return;
+        }
+
+        const item = document.createElement('span');
+        const nome = document.createElement('span');
+        const remover = document.createElement('button');
+        item.className = 'item_comparacao';
+        nome.textContent = opcao.textContent;
+        remover.type = 'button';
+        remover.className = 'remover_item_comparacao';
+        remover.textContent = '×';
+        remover.setAttribute('aria-label', `Remover ${opcao.textContent}`);
+        remover.addEventListener('click', function () {
+            const indice = selecionados.indexOf(valor);
+            if (indice >= 0) {
+                selecionados.splice(indice, 1);
+            }
+            definirOpcaoDisponivel(seletor, todos, selecionados);
+            renderizarItensComparacao(containerId, selecionados, seletorId, todos, nomeTodos);
+        });
+        item.appendChild(nome);
+        item.appendChild(remover);
+        container.appendChild(item);
+    });
+
+    definirOpcaoDisponivel(seletor, todos, selecionados);
+}
+
+function adicionarItemComparacao(seletorId, selecionados, todos, containerId, nomeTodos) {
+    const seletor = document.getElementById(seletorId);
+    const valor = seletor.value;
+
+    if (valor === todos) {
+        selecionados.splice(0, selecionados.length);
+    } else if (!selecionados.includes(valor)) {
+        selecionados.push(valor);
+    }
+
+    definirOpcaoDisponivel(seletor, todos, selecionados);
+    renderizarItensComparacao(containerId, selecionados, seletorId, todos, nomeTodos);
 }
 
 function configurarTipoFiltro() {
@@ -20,6 +100,8 @@ function configurarTipoFiltro() {
     document.querySelector('.link_voltar_dashboard').href = `dashboard.html?painel=${tipoFiltro}`;
 
     if (!idFiltroEmEdicao) {
+        renderizarItensComparacao('estados_selecionados', estadosSelecionados, 'estado_filtro', 'TODOS', 'Todos os estados');
+        renderizarItensComparacao('companhias_selecionadas', companhiasSelecionadas, 'companhia_filtro', 'TODAS', 'Todas as companhias');
         return;
     }
 
@@ -38,13 +120,29 @@ function configurarTipoFiltro() {
     }
 
     document.getElementById('nome_filtro').value = filtro.nome || '';
-    document.getElementById('estado_filtro').value = filtro.estado || 'TODOS';
-    document.getElementById('companhia_filtro').value = filtro.companhia || 'TODAS';
+    estadosSelecionados = obterListaLegada(filtro.estados, 'TODOS');
+    if (estadosSelecionados.length === 0) {
+        estadosSelecionados = obterListaLegada(filtro.estado, 'TODOS');
+    }
+    companhiasSelecionadas = obterListaLegada(filtro.companhias, 'TODAS');
+    if (companhiasSelecionadas.length === 0) {
+        companhiasSelecionadas = obterListaLegada(filtro.companhia, 'TODAS');
+    }
+    renderizarItensComparacao('estados_selecionados', estadosSelecionados, 'estado_filtro', 'TODOS', 'Todos os estados');
+    renderizarItensComparacao('companhias_selecionadas', companhiasSelecionadas, 'companhia_filtro', 'TODAS', 'Todas as companhias');
     document.getElementById('problema_filtro').value = filtro.problema || 'TODOS';
     document.getElementById('data_inicial_filtro').value = filtro.dataInicial || '';
     document.getElementById('data_final_filtro').value = filtro.dataFinal || '';
     document.querySelector('.botao_salvar_filtro').textContent = 'Salvar alterações';
 }
+
+document.getElementById('adicionar_estado_filtro').addEventListener('click', function () {
+    adicionarItemComparacao('estado_filtro', estadosSelecionados, 'TODOS', 'estados_selecionados', 'Todos os estados');
+});
+
+document.getElementById('adicionar_companhia_filtro').addEventListener('click', function () {
+    adicionarItemComparacao('companhia_filtro', companhiasSelecionadas, 'TODAS', 'companhias_selecionadas', 'Todas as companhias');
+});
 
 document.getElementById('formulario_filtro').addEventListener('submit', function (evento) {
     evento.preventDefault();
@@ -64,13 +162,24 @@ document.getElementById('formulario_filtro').addEventListener('submit', function
 
     document.getElementById('data_final_filtro').setCustomValidity('');
 
+    const nomeEstado = estadosSelecionados.length
+        ? Array.from(seletorEstado.options).filter(function (opcao) {
+            return estadosSelecionados.includes(opcao.value);
+        }).map(function (opcao) {
+            return opcao.textContent;
+        }).join(', ')
+        : 'Todos os estados';
     const novoFiltro = {
         id: idFiltroEmEdicao || Date.now(),
         nome: document.getElementById('nome_filtro').value,
         tipo: tipoFiltro,
-        estado: seletorEstado.value,
-        nomeEstado: seletorEstado.options[seletorEstado.selectedIndex].text,
-        companhia: tipoFiltro === 'companhias' ? seletorCompanhia.value : 'TODAS',
+        estados: estadosSelecionados.slice(),
+        estado: estadosSelecionados.length === 1 ? estadosSelecionados[0] : 'TODOS',
+        nomeEstado: nomeEstado,
+        companhias: tipoFiltro === 'companhias' ? companhiasSelecionadas.slice() : [],
+        companhia: tipoFiltro === 'companhias' && companhiasSelecionadas.length === 1
+            ? companhiasSelecionadas[0]
+            : 'TODAS',
         problema: tipoFiltro === 'companhias' ? seletorProblema.value : 'TODOS',
         dataInicial: dataInicial,
         dataFinal: dataFinal

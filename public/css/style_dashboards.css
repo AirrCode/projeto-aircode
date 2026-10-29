@@ -7,6 +7,7 @@
 
 body {
     min-height: 100vh;
+    min-height: 100dvh;
     background-color: #f7f8fb;
     color: #0C1B4D;
 }
@@ -56,7 +57,8 @@ select:focus-visible {
 
 .logo_dashboard img {
     width: auto;
-    height: 44px;
+    height: 100px;
+    max-width: min(32vw, 190px);
 }
 
 .acoes_cabecalho {
@@ -157,6 +159,11 @@ select:focus-visible {
     text-decoration: none;
 }
 
+.link_voltar_dashboard:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
 .principal_filtros {
     max-width: 1180px;
     margin: 0 auto;
@@ -215,6 +222,84 @@ select:focus-visible {
 
 .grupo_filtros label {
     margin-bottom: 24px;
+}
+
+.campo_comparacao {
+    margin-bottom: 24px;
+}
+
+.seletor_multiplo {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.seletor_multiplo label {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.botao_adicionar_comparacao {
+    min-height: 46px;
+    flex: 0 0 auto;
+    padding: 0 14px;
+    border: 1px solid #0C1B4D;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0C1B4D;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.botao_adicionar_comparacao:hover {
+    background: #eef1ff;
+}
+
+.itens_comparacao {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.item_comparacao {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #d6d9e2;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0C1B4D;
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: none;
+    overflow-wrap: anywhere;
+}
+
+.todos_comparacao {
+    color: #5d6475;
+}
+
+.remover_item_comparacao {
+    display: inline-grid;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #e8ebf2;
+    color: #0C1B4D;
+    font-size: 17px;
+    line-height: 1;
+}
+
+.remover_item_comparacao:hover {
+    background: #d7dced;
 }
 
 .botao_salvar_filtro {
@@ -362,11 +447,11 @@ h1 {
 }
 
 .grade_cartoes_destinos {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .grade_cartoes_companhias {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .cartao_indicador {
@@ -461,7 +546,7 @@ h1 {
 }
 
 .grade_graficos_companhias {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: 24px;
 }
 
@@ -528,6 +613,9 @@ h1 {
 .modal_filtros {
     position: relative;
     width: min(780px, 100%);
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
     padding: 30px;
     border-radius: 18px;
     background-color: #ffffff;
@@ -650,12 +738,16 @@ h1 {
     .grade_cartoes_companhias,
     .grade_graficos_destinos,
     .grade_graficos_companhias {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .grade_graficos_destinos,
     .grade_graficos_companhias {
         align-items: start;
+    }
+
+    .grupo_filtros {
+        gap: 32px;
     }
 }
 
@@ -742,6 +834,15 @@ h1 {
         gap: 20px;
     }
 
+    .seletor_multiplo {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .botao_adicionar_comparacao {
+        width: 100%;
+    }
+
     .acoes_topo_dashboard {
     align-self: stretch;
     }
@@ -754,4 +855,154 @@ h1 {
     }
 
     
+}
+
+@media screen and (max-width: 760px) {
+    .cabecalho_dashboard {
+        height: auto;
+        min-height: 68px;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        padding: 10px 20px;
+    }
+
+    .logo_dashboard {
+        height: 44px;
+        flex: 0 0 auto;
+    }
+
+    .logo_dashboard img {
+        height: 44px;
+        max-width: 150px;
+    }
+
+    .acoes_cabecalho {
+        min-width: 0;
+        flex: 1 1 auto;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .principal_dashboard,
+    .principal_filtros {
+        width: 100%;
+        padding: 30px 20px 56px;
+    }
+
+    .topo_dashboard {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .acoes_topo_dashboard {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .acoes_topo_dashboard > * {
+        min-height: 44px;
+    }
+
+    .cartao_indicador,
+    .cartao_grafico {
+        min-width: 0;
+        padding: 18px;
+    }
+
+    .modal_filtros {
+        max-height: calc(100vh - 28px);
+        max-height: calc(100dvh - 28px);
+        padding: 24px;
+    }
+
+    .modal_filtros h2 {
+        padding-right: 28px;
+        font-size: clamp(22px, 5vw, 28px);
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .cabecalho_dashboard {
+        padding: 10px 14px;
+    }
+
+    .logo_dashboard,
+    .logo_dashboard img {
+        height: 38px;
+    }
+
+    .logo_dashboard img {
+        max-width: 118px;
+    }
+
+    .acoes_cabecalho {
+        gap: 6px;
+    }
+
+    .link_voltar_dashboard {
+        max-width: 190px;
+        padding: 8px 10px;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .principal_dashboard,
+    .principal_filtros {
+        padding: 26px 16px 44px;
+    }
+
+    h1 {
+        font-size: clamp(30px, 9vw, 38px);
+        overflow-wrap: anywhere;
+    }
+
+    .acoes_topo_dashboard {
+        gap: 8px;
+    }
+
+    .acoes_topo_dashboard .botao_ancoras,
+    .acoes_topo_dashboard .botao_alertas,
+    .acoes_topo_dashboard .botao_filtros {
+        flex: 1 1 calc(50% - 8px);
+        justify-content: center;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .grade_cartoes_destinos,
+    .grade_cartoes_companhias,
+    .grade_graficos_destinos,
+    .grade_graficos_companhias {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cartao_indicador {
+        min-height: 132px;
+        padding: 18px;
+    }
+
+    .cartao_indicador strong,
+    .indicador_centralizado strong {
+        font-size: 23px;
+    }
+
+    .area_grafico,
+    #mapa_brasil {
+        height: 220px;
+    }
+
+    .grupo_filtros {
+        gap: 12px;
+    }
+
+    .grupo_filtros h2 {
+        font-size: 15px;
+        letter-spacing: 1px;
+    }
+
+    .botao_salvar_filtro {
+        width: 100%;
+        min-height: 46px;
+    }
 }
