@@ -1,99 +1,124 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Carrega as âncoras cadastradas no select de Âncora Alvo
-    carregarSelectAncoras();
+const parametrosAlerta = new URLSearchParams(window.location.search);
+const idAlertaEditando = parametrosAlerta.get('id');
 
-    // 2. Verifica se a URL possui um ID (modo edição)
-    const urlParams = new URLSearchParams(window.location.search);
-    const alertaId = urlParams.get('id');
-
-    if (alertaId) {
-        preencherDadosEdicao(alertaId);
+async function solicitarAlerta(url, opcoes) {
+    const resposta = await fetch(url, opcoes);
+    const corpo = await resposta.json().catch(function () {
+        return {};
+    });
+    if (!resposta.ok) {
+        throw new Error(corpo.mensagem || 'Não foi possível concluir a operação.');
     }
+    return corpo;
+}
 
-    // 3. Gerencia o envio do formulário (Criar ou Salvar Alteração)
-    var formulario = document.getElementById('formulario_alerta');
-    if (formulario) {
-        formulario.addEventListener('submit', function(event) {
-            event.preventDefault(); // Evita recarregar a página
+function mostrarErroAlerta(texto) {
+    const aviso = document.getElementById('erro_alerta');
+    aviso.textContent = texto;
+    aviso.hidden = false;
+}
 
-            var alertas = JSON.parse(localStorage.getItem('alertas_aircode')) || [];
+function obterFiltrosSalvos() {
+    const destinos = JSON.parse(localStorage.getItem('filtros_destinos') || '[]');
+    const companhias = JSON.parse(localStorage.getItem('filtros_companhias') || '[]');
+    return destinos.concat(companhias);
+}
 
-            var nomeAlerta = document.getElementById('nome_alerta').value;
-            var metricaAlvo = document.getElementById('metrica_alvo').value;
-            var mensagemAlerta = document.getElementById('mensagem_alerta').value;
+function preencherFiltros(alertaExistente) {
+    const select = document.getElementById('filtro_especifico');
+    const filtros = obterFiltrosSalvos();
+    const semFiltro = document.createElement('option');
+    semFiltro.value = '';
+    semFiltro.textContent = 'Sem filtro específico';
+    select.appendChild(semFiltro);
 
-            if (alertaId) {
-                // Modo Edição: Atualiza o alerta existente
-                var index = alertas.findIndex(a => a.id == alertaId);
-                if (index !== -1) {
-                    alertas[index].nome = nomeAlerta;
-                    alertas[index].metrica = metricaAlvo;
-                    alertas[index].mensagem = mensagemAlerta;
-                }
-            } else {
-                // Modo Criação: Cria um novo alerta
-                var novoAlerta = {
-                    id: Date.now(),
-                    nome: nomeAlerta,
-                    criador: "Usuário Aircode",
-                    metrica: metricaAlvo,
-                    status: "Ativo",
-                    mensagem: mensagemAlerta
-                };
-                alertas.push(novoAlerta);
-            }
+    filtros.forEach(function (filtro) {
+        const opcao = document.createElement('option');
+        opcao.value = String(filtro.id);
+        opcao.textContent = `${filtro.nome} (${filtro.tipo === 'companhias' ? 'Companhias' : 'Destinos'})`;
+        opcao.dataset.filtro = JSON.stringify(filtro);
+        select.appendChild(opcao);
+    });
 
-            // Salva no localStorage usando a chave unificada
-            localStorage.setItem('alertas_aircode', JSON.stringify(alertas));
-
-            // Redireciona para a tela de listagem correta
-            window.location.href = 'alertas_listar.html';
-        });
+    if (alertaExistente && alertaExistente.filtro_json) {
+        const salvo = JSON.parse(alertaExistente.filtro_json);
+        if (salvo.id !== undefined) {
+            select.value = String(salvo.id);
+        }
     }
-});
+}
 
-// Função para popular o select de Âncora Alvo
-function carregarSelectAncoras() {
-    var selectAncora = document.getElementById('metrica_alvo'); 
-    if (!selectAncora) return;
+function preencherAncoras(ancoras, alertaExistente) {
+    const select = document.getElementById('metrica_alvo');
+    select.replaceChildren();
+    const inicial = document.createElement('option');
+    inicial.value = '';
+    inicial.textContent = ancoras.length ? 'Selecione uma âncora' : 'Crie uma âncora antes';
+    select.appendChild(inicial);
+    ancoras.forEach(function (ancora) {
+        const opcao = document.createElement('option');
+        opcao.value = ancora.id_ancora;
+        opcao.textContent = `${ancora.nome_ancora} — ${ancora.indicador_alvo}`;
+        select.appendChild(opcao);
+    });
+    if (alertaExistente) {
+        select.value = String(alertaExistente.id_ancora);
+    }
+}
 
-    var ancoras = JSON.parse(localStorage.getItem('ancoras_aircode')) || [];
-    selectAncora.innerHTML = '<option value="">Selecione uma âncora</option>';
-
-    if (ancoras.length === 0) {
-        var optionVazia = document.createElement('option');
-        optionVazia.value = "";
-        optionVazia.textContent = "Nenhuma âncora encontrada";
-        optionVazia.disabled = true;
-        selectAncora.appendChild(optionVazia);
+document.addEventListener('DOMContentLoaded', async function () {
+    const idUsuario = sessionStorage.ID_USUARIO;
+    if (!idUsuario) {
+        window.location.href = 'login_usuario.html';
         return;
     }
 
-    ancoras.forEach(function(ancora) {
-        var nomeAncora = ancora.valores.nome || 'Sem nome';
-        var option = document.createElement('option');
-        option.value = nomeAncora;
-        option.textContent = nomeAncora;
-        selectAncora.appendChild(option);
-    });
-}
+    const queryUsuario = `idUsuario=${encodeURIComponent(idUsuario)}`;
+    try {
+        const [ancoras, alertaExistente] = await Promise.all([
+            solicitarAlerta(`/alertas/ancoras?${queryUsuario}`),
+            idAlertaEditando
+                ? solicitarAlerta(`/alertas/${encodeURIComponent(idAlertaEditando)}?${queryUsuario}`)
+                : Promise.resolve(null)
+        ]);
+        preencherAncoras(ancoras, alertaExistente);
+        preencherFiltros(alertaExistente);
 
-// Função para preencher os dados caso seja uma edição
-function preencherDadosEdicao(id) {
-    var alertas = JSON.parse(localStorage.getItem('alertas_aircode')) || [];
-    var alertaEncontrado = alertas.find(a => a.id == id);
-
-    if (alertaEncontrado) {
-        document.getElementById('nome_alerta').value = alertaEncontrado.nome || '';
-        document.getElementById('metrica_alvo').value = alertaEncontrado.metrica || '';
-        
-        var campoMensagem = document.getElementById('mensagem_alerta');
-        if (campoMensagem) {
-            campoMensagem.value = alertaEncontrado.mensagem || '';
+        if (alertaExistente) {
+            document.getElementById('nome_alerta').value = alertaExistente.nome_alerta;
+            document.getElementById('mensagem_alerta').value = alertaExistente.mensagem_alerta;
+            document.querySelector('main h1').textContent = 'Editar alerta';
         }
-
-        // Altera o título da página visualmente para indicar edição
-        const titulo = document.querySelector('main h1');
-        if (titulo) titulo.textContent = 'Editar Alerta';
+    } catch (erro) {
+        mostrarErroAlerta(erro.message);
+        return;
     }
-}
+
+    document.getElementById('formulario_alerta').addEventListener('submit', async function (evento) {
+        evento.preventDefault();
+        const filtroSelect = document.getElementById('filtro_especifico');
+        const filtroSelecionado = filtroSelect.selectedOptions[0];
+        const filtro = filtroSelecionado && filtroSelecionado.value
+            ? JSON.parse(filtroSelecionado.dataset.filtro)
+            : null;
+        const corpo = {
+            idUsuario: idUsuario,
+            nome: document.getElementById('nome_alerta').value.trim(),
+            idAncora: document.getElementById('metrica_alvo').value,
+            filtro: filtro,
+            mensagem: document.getElementById('mensagem_alerta').value.trim()
+        };
+        const url = idAlertaEditando ? `/alertas/${encodeURIComponent(idAlertaEditando)}` : '/alertas';
+
+        try {
+            await solicitarAlerta(url, {
+                method: idAlertaEditando ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(corpo)
+            });
+            window.location.href = 'alertas_listar.html';
+        } catch (erro) {
+            mostrarErroAlerta(erro.message);
+        }
+    });
+});

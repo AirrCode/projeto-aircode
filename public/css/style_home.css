@@ -108,7 +108,7 @@ a {
     background: linear-gradient(90deg, rgba(8, 12, 40, 0.75), rgba(70, 60, 130, 0.35)), url(../assets/imgs/fundo.png) no-repeat;
     background-size: cover;
     background-position: center;
-    padding-top: 80px;
+    padding-top: 90px;
 }
 
 .inicio {
@@ -338,12 +338,22 @@ a {
 /* TABLETS */
 @media screen and (max-width: 1024px) {
     header {
-        padding: 0 25px;
+        gap: 12px;
+        padding: 0 20px;
+    }
+
+    .logo img {
+        height: 90px;
     }
 
     .navbar {
-        gap: 20px;
-        font-size: 14px;
+        gap: 12px;
+        font-size: 13px;
+    }
+
+    .botao1,
+    .botao2 {
+        padding: 10px 14px;
     }
 
     .sobre {

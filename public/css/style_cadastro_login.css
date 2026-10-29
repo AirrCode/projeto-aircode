@@ -27,6 +27,7 @@ body {
 
     background-color: #100B4D;
     padding: 60px;
+    min-width: 0;
 }
 
 .voltar {
@@ -116,6 +117,7 @@ body {
 
 .foto_lado {
     flex: 1;
+    min-width: 0;
     background: url(../assets/imgs/fundo_cadastro.png) no-repeat center;
     background-size: cover;
 
@@ -131,6 +133,8 @@ body {
 .foto_conteudo p {
     font-size: 28px;
     max-width: 600px;
+    color: #ffffff;
+    line-height: 1.4;
 }
 
 /* TABLET*/

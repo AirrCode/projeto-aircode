@@ -5,210 +5,328 @@ const cores = {
     amarelo: '#F5C518',
     cinza: '#76809c'
 };
-const coresCompanhias = {
-    LATAM: cores.marinho,
-    GOL: cores.azul,
-    Azul: cores.amarelo
-};
 
-function obterCorCompanhia(nome) {
-    return coresCompanhias[nome] || cores.cinza;
-}
-
-const meses = [
-    { numero: 1, dias: 31, peso: 0.78 },
-    { numero: 2, dias: 28, peso: 0.76 },
-    { numero: 3, dias: 31, peso: 0.82 },
-    { numero: 4, dias: 30, peso: 0.86 },
-    { numero: 5, dias: 31, peso: 0.91 },
-    { numero: 6, dias: 30, peso: 1.04 },
-    { numero: 7, dias: 31, peso: 1.18 },
-    { numero: 8, dias: 31, peso: 0.95 },
-    { numero: 9, dias: 30, peso: 0.87 },
-    { numero: 10, dias: 31, peso: 0.9 },
-    { numero: 11, dias: 30, peso: 0.92 },
-    { numero: 12, dias: 31, peso: 1.01 }
-];
-const companhiasBase = [
-    { nome: 'LATAM', participacao: 0.4, reclamacoes: 0.029, resolucao: 0.81, avaliacao: 4.4 },
-    { nome: 'GOL', participacao: 0.32, reclamacoes: 0.026, resolucao: 0.86, avaliacao: 4.8 },
-    { nome: 'Azul', participacao: 0.28, reclamacoes: 0.023, resolucao: 0.89, avaliacao: 4.6 }
-];
-const problemasBase = [
-    { nome: 'Cancelamento', participacao: 0.38 },
-    { nome: 'Atraso', participacao: 0.31 },
-    { nome: 'Extravio de bagagem', participacao: 0.2 },
-    { nome: 'Outros', participacao: 0.11 }
+const paleta = [
+    '#0C1B4D', '#1B39D6', '#F5C518', '#7d86a3',
+    '#2f9e8f', '#c2561f', '#5b3fa8', '#b9bfd0'
 ];
 
-function obterTaxaResolucao(companhia, problema) {
-    const ajustePorProblema = {
-        'Cancelamento': -0.08,
-        'Atraso': -0.02,
-        'Extravio de bagagem': -0.14,
-        'Outros': 0.03
-    };
-    const taxa = companhia.resolucao + (ajustePorProblema[problema] || 0);
-    return Math.min(0.98, Math.max(0.55, taxa));
-}
-
-const estadosBrasil = [
-    ['BR-AC', 'Acre', 18], ['BR-AL', 'Alagoas', 350], ['BR-AP', 'Amapá', 12],
-    ['BR-AM', 'Amazonas', 25], ['BR-BA', 'Bahia', 520], ['BR-CE', 'Ceará', 180],
-    ['BR-DF', 'Distrito Federal', 210], ['BR-ES', 'Espírito Santo', 160],
-    ['BR-GO', 'Goiás', 190], ['BR-MA', 'Maranhão', 80], ['BR-MT', 'Mato Grosso', 70],
-    ['BR-MS', 'Mato Grosso do Sul', 62], ['BR-MG', 'Minas Gerais', 300], ['BR-PA', 'Pará', 95],
-    ['BR-PB', 'Paraíba', 75], ['BR-PR', 'Paraná', 260], ['BR-PE', 'Pernambuco', 230],
-    ['BR-PI', 'Piauí', 45], ['BR-RJ', 'Rio de Janeiro', 760], ['BR-RN', 'Rio Grande do Norte', 90],
-    ['BR-RS', 'Rio Grande do Sul', 220], ['BR-RO', 'Rondônia', 30], ['BR-RR', 'Roraima', 10],
-    ['BR-SC', 'Santa Catarina', 240], ['BR-SP', 'São Paulo', 980], ['BR-SE', 'Sergipe', 35],
-    ['BR-TO', 'Tocantins', 28]
-];
-
-function criarDadosDeVoos() {
-    const dados = [];
-    const somaPesosMeses = meses.reduce(function (total, mes) {
-        return total + mes.peso;
-    }, 0);
-
-    estadosBrasil.forEach(function (estado) {
-        meses.forEach(function (mes) {
-            companhiasBase.forEach(function (companhia) {
-                const voos = estado[2] * (mes.peso / somaPesosMeses) * companhia.participacao;
-                dados.push({
-                    estado: estado[0].replace('BR-', ''),
-                    nomeEstado: estado[1],
-                    mes: mes,
-                    companhia: companhia.nome,
-                    voos: voos
-                });
-            });
-        });
-    });
-
-    return dados;
-}
-
-const dadosDeVoos = criarDadosDeVoos();
-
-function obterFracaoDoMes(mes, filtro) {
-    if (!filtro || (!filtro.dataInicial && !filtro.dataFinal)) {
-        return 1;
-    }
-
-    const inicioMes = new Date(2025, mes.numero - 1, 1);
-    const fimMes = new Date(2025, mes.numero, 0);
-    const inicioFiltro = filtro.dataInicial ? new Date(`${filtro.dataInicial}T00:00:00`) : inicioMes;
-    const fimFiltro = filtro.dataFinal ? new Date(`${filtro.dataFinal}T23:59:59`) : fimMes;
-    const inicio = inicioFiltro > inicioMes ? inicioFiltro : inicioMes;
-    const fim = fimFiltro < fimMes ? fimFiltro : fimMes;
-
-    if (inicio > fim) {
-        return 0;
-    }
-
-    const diasIncluidos = Math.floor((fim - inicio) / 86400000) + 1;
-    return diasIncluidos / mes.dias;
-}
-
-function obterDadosDeVoosFiltrados(tipoPainel) {
-    const filtro = obterFiltroAtual(tipoPainel);
-    const estadosSelecionados = obterEstadosDoFiltro(filtro);
-    const companhiasSelecionadas = obterCompanhiasDoFiltro(filtro);
-
-    return dadosDeVoos.filter(function (linha) {
-        const estadoCombina = estadosSelecionados.length === 0 || estadosSelecionados.includes(linha.estado);
-        const companhiaCombina = companhiasSelecionadas.length === 0 || companhiasSelecionadas.includes(linha.companhia);
-        return estadoCombina && companhiaCombina && obterFracaoDoMes(linha.mes, filtro) > 0;
-    }).map(function (linha) {
-        return {
-            estado: linha.estado,
-            nomeEstado: linha.nomeEstado,
-            mes: linha.mes,
-            companhia: linha.companhia,
-            voos: linha.voos * obterFracaoDoMes(linha.mes, filtro)
-        };
-    });
-}
-
-function obterDadosDeReclamacoes(tipoPainel) {
-    const filtro = obterFiltroAtual(tipoPainel);
-    const dadosFiltrados = obterDadosDeVoosFiltrados(tipoPainel);
-    const dados = [];
-
-    dadosFiltrados.forEach(function (linha) {
-        const companhia = companhiasBase.find(function (item) {
-            return item.nome === linha.companhia;
-        });
-        const totalReclamacoes = linha.voos * companhia.reclamacoes;
-
-        problemasBase.forEach(function (problema) {
-            const combinaProblema = !filtro || filtro.problema === 'TODOS' || filtro.problema === problema.nome;
-            if (combinaProblema) {
-                dados.push({
-                    estado: linha.estado,
-                    mes: linha.mes,
-                    companhia: linha.companhia,
-                    problema: problema.nome,
-                    quantidade: totalReclamacoes * problema.participacao
-                });
-            }
-        });
-    });
-
-    return dados;
-}
+// Preenchido pela rota /dashboard/filtros assim que a pagina carrega.
+let opcoesFiltro = { estados: [], companhias: [], problemas: [], periodo: {} };
+const cacheDados = {};
+let alertasDisparados = [];
+let verificandoAlertas = false;
 
 function formatarQuantidade(numero) {
-    const casasDecimais = numero > 0 && numero < 10 ? 1 : 0;
-    return numero.toLocaleString('pt-BR', {
-        minimumFractionDigits: casasDecimais,
-        maximumFractionDigits: casasDecimais
-    });
+    const valor = Number(numero || 0);
+    return valor.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
 }
 
 function formatarReais(valor) {
-    return valor.toLocaleString('pt-BR', {
+    return Number(valor || 0).toLocaleString('pt-BR', {
         style: 'currency',
         currency: 'BRL',
         maximumFractionDigits: 0
     });
 }
 
-function somarPor(dados, chave, valor) {
-    return dados.reduce(function (resultado, linha) {
-        resultado[linha[chave]] = (resultado[linha[chave]] || 0) + linha[valor];
-        return resultado;
-    }, {});
-}
-
-function obterPercentualResolucao(companhia, dadosReclamacoes) {
-    const reclamacoes = dadosReclamacoes.filter(function (linha) {
-        return linha.companhia === companhia.nome;
-    });
-    const total = reclamacoes.reduce(function (soma, linha) {
-        return soma + linha.quantidade;
-    }, 0);
-
-    if (!total) {
-        return companhia.resolucao * 100;
+function definirTexto(id, texto) {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+        elemento.textContent = texto;
     }
-
-    const resolvidas = reclamacoes.reduce(function (soma, linha) {
-        return soma + (linha.quantidade * obterTaxaResolucao(companhia, linha.problema));
-    }, 0);
-    return (resolvidas / total) * 100;
 }
 
 function obterFiltroAtual(tipoPainel) {
-    return JSON.parse(localStorage.getItem(`filtro_atual_${tipoPainel}`) || 'null');
+    const chave = `filtro_atual_${tipoPainel}`;
+    const filtro = JSON.parse(localStorage.getItem(chave) || 'null');
+
+    if (!filtro) {
+        return null;
+    }
+
+    const filtroNormalizado = normalizarFiltro(filtro, tipoPainel);
+    if (
+        filtro.dataInicial !== filtroNormalizado.dataInicial
+        || filtro.dataFinal !== filtroNormalizado.dataFinal
+    ) {
+        localStorage.setItem(chave, JSON.stringify(filtroNormalizado));
+    }
+
+    return filtroNormalizado;
 }
 
-function obterTotalVoos(dados) {
-    return dados.reduce(function (total, linha) {
-        return total + linha.voos;
-    }, 0);
+function obterChaveFiltros(tipoPainel) {
+    return tipoPainel === 'companhias' ? 'filtros_companhias' : 'filtros_destinos';
 }
+
+function obterPainelAtual() {
+    const opcaoAtiva = document.querySelector('.opcao_dashboard.ativa');
+    return opcaoAtiva ? opcaoAtiva.dataset.painel : 'destinos';
+}
+
+function obterNomeEstado(codigoEstado) {
+    if (!codigoEstado || codigoEstado === 'TODOS') {
+        return 'Todos os estados';
+    }
+
+    const estado = opcoesFiltro.estados.find(function (item) {
+        return item.uf === codigoEstado;
+    });
+
+    return estado ? estado.nome_estado : codigoEstado;
+}
+
+function obterEstadosSelecionados(filtro) {
+    if (Array.isArray(filtro.estados) && filtro.estados.length) {
+        return filtro.estados;
+    }
+
+    return filtro.estado && filtro.estado !== 'TODOS' ? [filtro.estado] : [];
+}
+
+function obterCompanhiasSelecionadas(filtro) {
+    if (Array.isArray(filtro.companhias) && filtro.companhias.length) {
+        return filtro.companhias;
+    }
+
+    return filtro.companhia && filtro.companhia !== 'TODAS' ? [filtro.companhia] : [];
+}
+
+function obterNomeCompanhia(idCompanhia) {
+    if (!idCompanhia || idCompanhia === 'TODAS') {
+        return 'Todas as companhias';
+    }
+
+    const companhia = opcoesFiltro.companhias.find(function (item) {
+        return String(item.id_companhia) === String(idCompanhia);
+    });
+
+    return companhia ? companhia.nome : idCompanhia;
+}
+
+function obterDatasDoPeriodo(filtro) {
+    const dataInicial = filtro && filtro.dataInicial ? filtro.dataInicial : '';
+    const dataFinal = filtro && filtro.dataFinal ? filtro.dataFinal : '';
+
+    if (dataInicial || dataFinal) {
+        return { dataInicial: dataInicial, dataFinal: dataFinal };
+    }
+
+    return {
+        dataInicial: '2025-10-01',
+        dataFinal: '2025-10-31'
+    };
+}
+
+function formatarDataISO(data) {
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+}
+
+function formatarMesAno(dataISO) {
+    if (!dataISO) {
+        return '';
+    }
+
+    const partes = dataISO.split('-').map(Number);
+    const data = new Date(partes[0], partes[1] - 1, partes[2] || 1);
+    const mes = data.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+    const mesCapitalizado = mes.charAt(0).toLocaleUpperCase('pt-BR') + mes.slice(1);
+    return `${mesCapitalizado} - ${data.getFullYear()}`;
+}
+
+function obterRotuloCurtoDoPeriodo(filtro) {
+    const periodo = obterDatasDoPeriodo(filtro);
+    const inicio = formatarMesAno(periodo.dataInicial);
+    const fim = formatarMesAno(periodo.dataFinal);
+
+    if (inicio && fim && inicio === fim) {
+        return inicio;
+    }
+    if (inicio && fim) {
+        return `${inicio} a ${fim}`;
+    }
+    return inicio ? `A partir de ${inicio}` : `Até ${fim}`;
+}
+
+function obterRotuloComparativo(filtro) {
+    const periodo = obterDatasDoPeriodo(filtro);
+    const inicio = new Date(`${periodo.dataInicial}T00:00:00`);
+    const fim = new Date(`${periodo.dataFinal}T00:00:00`);
+    if (inicio.getFullYear() === fim.getFullYear()
+        && inicio.getMonth() === fim.getMonth()
+    ) {
+        const mesAnterior = new Date(inicio.getFullYear(), inicio.getMonth() - 1, 1);
+        return `${formatarMesAno(formatarDataISO(mesAnterior))} | ${formatarMesAno(periodo.dataInicial)}`;
+    }
+
+    return obterRotuloCurtoDoPeriodo(filtro);
+}
+
+function atualizarRotulosDePeriodo(tipoPainel, filtro) {
+    const rotulo = obterRotuloCurtoDoPeriodo(filtro);
+    document.querySelectorAll(`[data-periodo-kpi="${tipoPainel}"]`).forEach(function (elemento) {
+        elemento.textContent = rotulo;
+    });
+
+    if (tipoPainel === 'destinos') {
+        const comparativo = document.querySelector('[data-periodo-comparativo="destinos"]');
+        if (comparativo) {
+            comparativo.textContent = obterRotuloComparativo(filtro);
+        }
+    }
+}
+
+function obterTextoDoPeriodo(filtro) {
+    const periodo = obterDatasDoPeriodo(filtro);
+    const inicio = periodo.dataInicial
+        ? new Date(`${periodo.dataInicial}T00:00:00`).toLocaleDateString('pt-BR')
+        : 'início';
+    const fim = periodo.dataFinal
+        ? new Date(`${periodo.dataFinal}T00:00:00`).toLocaleDateString('pt-BR')
+        : 'hoje';
+    return `${inicio} a ${fim}`;
+}
+
+// ---------------------------------------------------------------------------
+// Acesso aos dados do banco
+// ---------------------------------------------------------------------------
+
+function montarParametros(filtro) {
+    const parametros = new URLSearchParams();
+    filtro = filtro || {};
+
+    const estados = obterEstadosSelecionados(filtro);
+    estados.forEach(function (estado) {
+        parametros.append('estados', estado);
+    });
+
+    obterCompanhiasSelecionadas(filtro).forEach(function (companhia) {
+        parametros.append('companhias', companhia);
+    });
+    if (filtro.problema && filtro.problema !== 'TODOS') {
+        parametros.set('problema', filtro.problema);
+    }
+    const periodo = obterDatasDoPeriodo(filtro);
+    parametros.set('dataInicial', periodo.dataInicial);
+    parametros.set('dataFinal', periodo.dataFinal);
+
+    return parametros;
+}
+
+async function buscarJson(caminho) {
+    const resposta = await fetch(caminho);
+
+    if (!resposta.ok) {
+        const corpo = await resposta.json().catch(function () {
+            return { mensagem: 'Falha ao consultar o servidor.' };
+        });
+        throw new Error(corpo.mensagem || 'Falha ao consultar o servidor.');
+    }
+
+    return resposta.json();
+}
+
+async function carregarOpcoesFiltro() {
+    opcoesFiltro = await buscarJson('/dashboard/filtros');
+}
+
+async function carregarPainel(tipoPainel) {
+    const filtro = obterFiltroAtual(tipoPainel);
+    const parametros = montarParametros(filtro).toString();
+    const caminho = `/dashboard/${tipoPainel}${parametros ? '?' + parametros : ''}`;
+
+    if (cacheDados[caminho]) {
+        return cacheDados[caminho];
+    }
+
+    const dados = await buscarJson(caminho);
+    cacheDados[caminho] = dados;
+    return dados;
+}
+
+function limparCache() {
+    Object.keys(cacheDados).forEach(function (chave) {
+        delete cacheDados[chave];
+    });
+}
+
+function mostrarErro(mensagem) {
+    const aviso = document.getElementById('aviso_erro_dashboard');
+
+    if (aviso) {
+        aviso.textContent = mensagem;
+        aviso.hidden = false;
+        return;
+    }
+
+    const novo = document.createElement('p');
+    novo.id = 'aviso_erro_dashboard';
+    novo.className = 'aviso_erro_dashboard';
+    novo.textContent = mensagem;
+    document.querySelector('.principal_dashboard').prepend(novo);
+}
+
+function esconderErro() {
+    const aviso = document.getElementById('aviso_erro_dashboard');
+    if (aviso) {
+        aviso.hidden = true;
+    }
+}
+
+function mostrarProximoAlerta() {
+    const popup = document.getElementById('popup_alerta');
+    const alerta = alertasDisparados.shift();
+    if (!alerta) {
+        popup.hidden = true;
+        delete popup.dataset.alertaId;
+        return;
+    }
+
+    document.getElementById('popup_titulo').textContent = alerta.nome;
+    document.getElementById('popup_mensagem').textContent = alerta.mensagem;
+    popup.dataset.alertaId = String(alerta.id);
+    popup.hidden = false;
+    document.getElementById('fechar_popup_alerta').focus();
+}
+
+async function verificarAlertasAtivos() {
+    const idUsuario = sessionStorage.ID_USUARIO;
+    if (!idUsuario || verificandoAlertas) return;
+
+    verificandoAlertas = true;
+    try {
+        const resposta = await fetch(`/alertas/avaliar?idUsuario=${encodeURIComponent(idUsuario)}`);
+        const corpo = await resposta.json().catch(function () {
+            return {};
+        });
+        if (!resposta.ok) {
+            throw new Error(corpo.mensagem || 'Não foi possível verificar seus alertas.');
+        }
+        const popup = document.getElementById('popup_alerta');
+        const alertaVisivel = popup && popup.dataset.alertaId;
+        const idsPendentes = alertasDisparados.map(function (alerta) { return String(alerta.id); });
+        alertasDisparados = alertasDisparados.concat(corpo.filter(function (alerta) {
+            return String(alerta.id) !== String(alertaVisivel)
+                && !idsPendentes.includes(String(alerta.id));
+        }));
+        if (alertasDisparados.length && (!popup || popup.hidden)) {
+            mostrarProximoAlerta();
+        }
+    } catch (erro) {
+        console.log('Erro ao verificar alertas ativos.', erro);
+        mostrarErro(`Não foi possível verificar os alertas: ${erro.message}`);
+    } finally {
+        verificandoAlertas = false;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Graficos
+// ---------------------------------------------------------------------------
 
 function criarGrafico(id, tipo, dados, opcoes = {}) {
     const elemento = document.getElementById(id);
@@ -252,300 +370,212 @@ function criarGrafico(id, tipo, dados, opcoes = {}) {
     });
 }
 
-function definirTexto(id, texto) {
-    const elemento = document.getElementById(id);
-    if (elemento) {
-        elemento.textContent = texto;
-    }
-}
+function renderizarPainelDestinos(dados, filtro) {
+    atualizarRotulosDePeriodo('destinos', filtro);
+    const estados = dados.porEstado || [];
+    const totais = dados.totais || {};
+    const periodo = obterTextoDoPeriodo(filtro);
 
-function obterTextoDoPeriodo(filtro) {
-    if (!filtro || (!filtro.dataInicial && !filtro.dataFinal)) {
-        return 'Todo o período disponível';
-    }
-
-    const inicio = filtro.dataInicial
-        ? new Date(`${filtro.dataInicial}T00:00:00`).toLocaleDateString('pt-BR')
-        : 'início';
-    const fim = filtro.dataFinal
-        ? new Date(`${filtro.dataFinal}T00:00:00`).toLocaleDateString('pt-BR')
-        : 'hoje';
-    return `${inicio} a ${fim}`;
-}
-
-function atualizarIndicadoresDestinos(dadosVoos) {
-    const filtro = obterFiltroAtual(obterPainelAtual());
-    const totaisEstado = somarPor(dadosVoos, 'estado', 'voos');
-    const estadosOrdenados = Object.keys(totaisEstado).sort(function (a, b) {
-        return totaisEstado[b] - totaisEstado[a];
-    });
-    const topTres = estadosOrdenados.slice(0, 3);
-    const melhorEstado = estadosOrdenados[0];
-    const totalVoos = obterTotalVoos(dadosVoos);
-    const nomeEstadoDestaque = estadosBrasil.find(function (estado) {
-        return estado[0] === `BR-${melhorEstado}`;
-    });
-
-    definirTexto('kpi_destinos_titulo', topTres.length ? 'Destinos mais procurados' : 'Destinos no período');
+    const topTres = estados.slice(0, 3);
+    definirTexto('kpi_destinos_titulo', 'Destinos mais procurados');
     definirTexto('kpi_destinos_valor', topTres.length
         ? topTres.map(function (estado, indice) {
-            return `${indice + 1}º ${estado} (${formatarQuantidade(totaisEstado[estado])})`;
+            return `${indice + 1}º ${estado.uf} (${formatarQuantidade(estado.passageiros)})`;
         }).join(' · ')
         : 'Sem dados para este filtro');
-    definirTexto('kpi_estado_destaque', nomeEstadoDestaque ? nomeEstadoDestaque[1] : 'Sem dados');
-    definirTexto('kpi_estado_destaque_detalhe', `${formatarQuantidade(totaisEstado[melhorEstado] || 0)} voos no período`);
-    definirTexto('kpi_faturamento', formatarReais(totalVoos * 660.54));
-    definirTexto('kpi_faturamento_detalhe', `${formatarQuantidade(totalVoos)} voos · R$ 660,54 por voo (Fonte: Anac) · ${obterTextoDoPeriodo(filtro)}`);
-}
 
-function atualizarIndicadoresCompanhias(dadosVoos, dadosReclamacoes) {
-    const filtro = obterFiltroAtual(obterPainelAtual());
-    const totaisPorCompanhia = somarPor(dadosVoos, 'companhia', 'voos');
-    const reclamacoesPorCompanhia = somarPor(dadosReclamacoes, 'companhia', 'quantidade');
-    const reclamacoesPorProblema = somarPor(dadosReclamacoes, 'problema', 'quantidade');
-    const companhiasVisiveis = Object.keys(totaisPorCompanhia);
-    const totalReclamacoes = Object.values(reclamacoesPorCompanhia).reduce(function (total, valor) {
-        return total + valor;
-    }, 0);
-    let pesoAvaliacoes = 0;
-    let totalAvaliacoes = 0;
-    let totalResolvidas = 0;
+    const destaque = estados[0];
+    definirTexto('kpi_estado_destaque', destaque ? destaque.estado || destaque.uf : 'Sem dados');
+    definirTexto('kpi_estado_destaque_detalhe', destaque
+        ? `${formatarQuantidade(destaque.passageiros)} passageiros no período`
+        : 'Nenhum voo para este filtro');
 
-    companhiasVisiveis.forEach(function (nome) {
-        const companhia = companhiasBase.find(function (item) {
-            return item.nome === nome;
-        });
-        pesoAvaliacoes += companhia.avaliacao * (totaisPorCompanhia[nome] || 0);
-        totalAvaliacoes += totaisPorCompanhia[nome] || 0;
-        dadosReclamacoes.filter(function (linha) {
-            return linha.companhia === nome;
-        }).forEach(function (linha) {
-            totalResolvidas += linha.quantidade * obterTaxaResolucao(companhia, linha.problema);
-        });
-    });
+    definirTexto('kpi_faturamento', formatarReais(totais.faturamentoEstimado));
+    const ocupacao = totais.taxaOcupacao === null || totais.taxaOcupacao === undefined
+        ? null
+        : `${totais.taxaOcupacao.toFixed(1).replace('.', ',')}% de ocupação`;
+    definirTexto('kpi_faturamento_detalhe', [
+        `${formatarQuantidade(totais.passageiros)} passageiros`,
+        `R$ ${totais.precoMedioPassagem} por passagem`,
+        ocupacao,
+        periodo
+    ].filter(Boolean).join(' · '));
 
-    const problemaMaisFrequente = Object.keys(reclamacoesPorProblema).sort(function (a, b) {
-        return reclamacoesPorProblema[b] - reclamacoesPorProblema[a];
-    })[0];
-
-    definirTexto('kpi_avaliacao', totalAvaliacoes ? `${(pesoAvaliacoes / totalAvaliacoes).toFixed(1).replace('.', ',')}/5` : '—');
-    const textoCompanhias = companhiasVisiveis.length === 1 ? '1 companhia' : `${companhiasVisiveis.length} companhias`;
-    definirTexto('kpi_avaliacao_detalhe', `${textoCompanhias} · ${obterTextoDoPeriodo(filtro)}`);
-    definirTexto('kpi_resolucao', totalReclamacoes ? `${Math.round((totalResolvidas / totalReclamacoes) * 100)}%` : '—');
-    definirTexto('kpi_resolucao_detalhe', totalReclamacoes ? 'das reclamações estimadas foram resolvidas em 5 dias' : 'Sem reclamações neste período');
-    definirTexto('kpi_reclamacoes', formatarQuantidade(totalReclamacoes));
-    definirTexto('kpi_reclamacoes_detalhe', `estimativa · ${obterTextoDoPeriodo(filtro)}`);
-    definirTexto('kpi_problema', problemaMaisFrequente || 'Sem dados');
-    definirTexto('kpi_problema_detalhe', problemaMaisFrequente
-        ? `${formatarQuantidade(reclamacoesPorProblema[problemaMaisFrequente])} reclamações estimadas`
-        : 'Nenhuma reclamação para este filtro');
-}
-
-function atualizarTitulos(tipoPainel) {
-    const filtro = obterFiltroAtual(tipoPainel);
-    const partesVoos = [];
-    const partesReclamacoes = [];
-
-    const estadosSelecionados = obterEstadosDoFiltro(filtro);
-    const companhiasSelecionadas = obterCompanhiasDoFiltro(filtro);
+    const contexto = [];
+    const estadosSelecionados = filtro ? obterEstadosSelecionados(filtro) : [];
     if (estadosSelecionados.length) {
-        const nomesEstados = estadosSelecionados.map(obterNomeEstado).join(', ');
-        partesVoos.push(nomesEstados);
-        partesReclamacoes.push(nomesEstados);
+        contexto.push(estadosSelecionados.map(obterNomeEstado).join(', '));
     }
-    if (tipoPainel === 'companhias' && companhiasSelecionadas.length) {
-        const nomesCompanhias = companhiasSelecionadas.join(', ');
-        partesVoos.push(nomesCompanhias);
-        partesReclamacoes.push(nomesCompanhias);
+    if (filtro) {
+        contexto.push(periodo);
     }
-    if (tipoPainel === 'companhias' && filtro && filtro.problema !== 'TODOS') {
-        partesReclamacoes.push(filtro.problema);
-    }
-    const periodo = obterTextoDoPeriodo(filtro);
-    const contextoVoos = filtro
-        ? ` · ${partesVoos.concat(periodo).join(' · ')}`
-        : '';
-    const contextoReclamacoes = filtro
-        ? ` · ${partesReclamacoes.concat(periodo).join(' · ')}`
-        : '';
+    const sufixo = contexto.length ? ` · ${contexto.join(' · ')}` : '';
 
-    definirTexto('titulo_grafico_origem_destino', `Voos por estado${contextoVoos}`);
-    definirTexto('titulo_grafico_mapa', `Volume de voos${contextoVoos}`);
-    definirTexto('titulo_grafico_origem_bahia', `Voos por companhia${contextoVoos}`);
-    definirTexto('titulo_grafico_problemas', filtro && filtro.problema !== 'TODOS'
-        ? `Reclamações por companhia${contextoReclamacoes}`
-        : `Reclamações por problema${contextoReclamacoes}`);
-    definirTexto('titulo_grafico_assentos', `Voos por companhia${contextoVoos}`);
-    definirTexto('titulo_grafico_resolucao', `Taxa de resolução${contextoReclamacoes}`);
-}
-
-function renderizarGraficos() {
-    const tipoPainel = obterPainelAtual();
-    const dadosVoos = obterDadosDeVoosFiltrados(tipoPainel);
-    const dadosReclamacoes = obterDadosDeReclamacoes(tipoPainel);
-    const filtro = obterFiltroAtual(tipoPainel);
-    atualizarTitulos(tipoPainel);
-    atualizarIndicadoresDestinos(dadosVoos);
-    atualizarIndicadoresCompanhias(dadosVoos, dadosReclamacoes);
+    definirTexto('titulo_grafico_origem_destino', `Passageiros por estado de destino${sufixo}`);
+    definirTexto('titulo_grafico_mapa', `Volume de passageiros por estado${sufixo}`);
+    definirTexto('titulo_grafico_origem_bahia', `Passageiros por companhia aérea${sufixo}`);
 
     if (typeof Chart === 'undefined') {
-        document.querySelectorAll('canvas').forEach(function (canvas) {
-            canvas.replaceWith('Não foi possível carregar o gráfico agora.');
-        });
         return;
     }
 
-    const voosPorEstado = somarPor(dadosVoos, 'estado', 'voos');
-    const estadosSelecionados = obterEstadosDoFiltro(filtro);
-    const estadosOrdenados = (estadosSelecionados.length ? estadosSelecionados : Object.keys(voosPorEstado)).sort(function (a, b) {
-        return voosPorEstado[b] - voosPorEstado[a];
-    }).slice(0, estadosSelecionados.length || 8);
-    const voosPorCompanhia = somarPor(dadosVoos, 'companhia', 'voos');
-    const reclamacoesPorCompanhia = somarPor(dadosReclamacoes, 'companhia', 'quantidade');
-    const reclamacoesPorProblema = somarPor(dadosReclamacoes, 'problema', 'quantidade');
-    const estadosLabel = estadosOrdenados.map(function (codigo) {
-        return codigo;
-    });
-    const voosEstado = estadosOrdenados.map(function (codigo) {
-        return voosPorEstado[codigo] || 0;
-    });
-    const compararEstados = estadosSelecionados.length > 1;
-    document.getElementById('grafico_origem_destino').parentElement.style.height = compararEstados
-        ? `${Math.max(260, estadosOrdenados.length * 34)}px`
-        : '';
-
+    const topEstados = estadosSelecionados.length
+        ? estados
+        : estados.slice(0, 8);
     criarGrafico('grafico_origem_destino', 'bar', {
-        labels: estadosLabel,
+        labels: topEstados.map(function (estado) { return estado.uf; }),
         datasets: [{
-            label: 'Voos',
-            data: voosEstado,
+            label: 'Passageiros',
+            data: topEstados.map(function (estado) { return Number(estado.passageiros); }),
             backgroundColor: cores.marinho,
             borderRadius: 5,
             maxBarThickness: 44
         }]
     }, {
-        indexAxis: compararEstados ? 'y' : 'x',
         plugins: {
             legend: { display: false },
             tooltip: {
                 callbacks: {
-                    label: function (contexto) {
-                        return `${formatarQuantidade(contexto.raw)} voos`;
+                    label: function (contextoTooltip) {
+                        return `${formatarQuantidade(contextoTooltip.raw)} passageiros`;
                     }
                 }
             }
         }
     });
 
-    const companhiasVisiveis = companhiasBase.filter(function (companhia) {
-        return (voosPorCompanhia[companhia.nome] || 0) > 0;
-    });
-
+    const companhias = dados.porCompanhia || [];
     criarGrafico('grafico_origem_bahia', 'doughnut', {
-        labels: companhiasVisiveis.map(function (companhia) { return companhia.nome; }),
+        labels: companhias.map(function (item) { return item.companhia; }),
         datasets: [{
-            data: companhiasVisiveis.map(function (companhia) {
-                return voosPorCompanhia[companhia.nome] || 0;
-            }),
-            backgroundColor: companhiasVisiveis.map(function (companhia) {
-                return obterCorCompanhia(companhia.nome);
+            data: companhias.map(function (item) { return Number(item.passageiros); }),
+            backgroundColor: companhias.map(function (item, indice) {
+                return paleta[indice % paleta.length];
             }),
             borderColor: '#f5f6fa',
             borderWidth: 3
         }]
     }, {
         cutout: '58%',
-        scales: {
-            x: { display: false },
-            y: { display: false }
-        },
-        plugins: {
-            legend: { position: 'bottom' }
-        }
+        scales: { x: { display: false }, y: { display: false } },
+        plugins: { legend: { position: 'bottom' } }
     });
 
-    const companhiasComDados = companhiasBase.filter(function (companhia) {
-        return (voosPorCompanhia[companhia.nome] || 0) > 0;
-    });
-    const problemaSelecionado = filtro && filtro.problema !== 'TODOS';
-    const problemas = problemaSelecionado ? [filtro.problema] : problemasBase.map(function (problema) {
-        return problema.nome;
-    });
-    const valoresProblemas = problemas.map(function (problema) {
-        return reclamacoesPorProblema[problema] || 0;
-    });
+    desenharMapa(estados, filtro);
+}
 
-    criarGrafico('grafico_problemas', problemaSelecionado ? 'bar' : 'pie', {
-        labels: problemaSelecionado
-            ? companhiasComDados.map(function (companhia) { return companhia.nome; })
-            : problemas,
+function renderizarPainelCompanhias(dados, filtro) {
+    atualizarRotulosDePeriodo('companhias', filtro);
+    const totais = dados.totais || {};
+    const problemas = dados.porProblema || [];
+    const companhias = dados.porCompanhia || [];
+    const volume = dados.volumePorCompanhia || [];
+    const periodo = obterTextoDoPeriodo(filtro);
+
+    definirTexto('kpi_avaliacao', totais.notaMedia
+        ? `${totais.notaMedia.toFixed(1).replace('.', ',')}/5`
+        : '—');
+    definirTexto('kpi_avaliacao_detalhe', totais.notaMedia
+        ? `nota média do consumidor · ${periodo}`
+        : `sem notas atribuídas · ${periodo}`);
+
+    definirTexto('kpi_resolucao', totais.taxaResolucao === null || totais.taxaResolucao === undefined
+        ? '—'
+        : `${Math.round(totais.taxaResolucao)}%`);
+    definirTexto('kpi_resolucao_detalhe', totais.avaliadas
+        ? `${formatarQuantidade(totais.resolvidas)} de ${formatarQuantidade(totais.avaliadas)} reclamações avaliadas`
+        : 'Nenhuma reclamação avaliada neste período');
+
+    definirTexto('kpi_reclamacoes', formatarQuantidade(totais.reclamacoes));
+    definirTexto('kpi_reclamacoes_detalhe', `registradas · ${periodo}`);
+
+    const problemaTopo = problemas[0];
+    definirTexto('kpi_problema', problemaTopo ? problemaTopo.problema : 'Sem dados');
+    definirTexto('kpi_problema_detalhe', problemaTopo
+        ? `${formatarQuantidade(problemaTopo.quantidade)} reclamações`
+        : 'Nenhuma reclamação para este filtro');
+
+    const contexto = [];
+    if (filtro && filtro.estado && filtro.estado !== 'TODOS') {
+        contexto.push(obterNomeEstado(filtro.estado));
+    }
+    const companhiasSelecionadas = filtro ? obterCompanhiasSelecionadas(filtro) : [];
+    if (companhiasSelecionadas.length) {
+        contexto.push(companhiasSelecionadas.map(obterNomeCompanhia).join(', '));
+    }
+    if (filtro && filtro.problema && filtro.problema !== 'TODOS') {
+        contexto.push(filtro.problema);
+    }
+    if (filtro) {
+        contexto.push(periodo);
+    }
+    const sufixo = contexto.length ? ` · ${contexto.join(' · ')}` : '';
+
+    definirTexto('titulo_grafico_problemas', `Reclamações por grupo de problema${sufixo}`);
+    definirTexto('titulo_grafico_assentos', `Passageiros por companhia${sufixo}`);
+    definirTexto('titulo_grafico_resolucao', `Resolução das reclamações por companhia${sufixo}`);
+
+    if (typeof Chart === 'undefined') {
+        return;
+    }
+
+    criarGrafico('grafico_problemas', 'pie', {
+        labels: problemas.map(function (item) { return item.problema; }),
         datasets: [{
-            label: problemaSelecionado ? 'Reclamações' : 'Reclamações estimadas',
-            data: problemaSelecionado
-                ? companhiasComDados.map(function (companhia) {
-                    return dadosReclamacoes.filter(function (linha) {
-                        return linha.companhia === companhia.nome && linha.problema === filtro.problema;
-                    }).reduce(function (total, linha) { return total + linha.quantidade; }, 0);
-                })
-                : valoresProblemas,
-            backgroundColor: problemaSelecionado
-                ? companhiasComDados.map(function (companhia) {
-                    return obterCorCompanhia(companhia.nome);
-                })
-                : [cores.marinho, '#7d86a3', cores.azul, cores.amarelo],
+            label: 'Reclamações',
+            data: problemas.map(function (item) { return Number(item.quantidade); }),
+            backgroundColor: problemas.map(function (item, indice) {
+                return paleta[indice % paleta.length];
+            }),
             borderColor: '#f5f6fa',
             borderWidth: 3
         }]
     }, {
-        plugins: {
-            legend: { position: problemaSelecionado ? 'top' : 'bottom' }
-        },
-        scales: problemaSelecionado ? {
-            y: { beginAtZero: true, grid: { color: '#e3e7ef' } },
-            x: { grid: { display: false } }
-        } : {}
+        scales: { x: { display: false }, y: { display: false } },
+        plugins: { legend: { position: 'bottom' } }
     });
 
     criarGrafico('grafico_assentos', 'bar', {
-        labels: companhiasComDados.map(function (companhia) { return companhia.nome; }),
+        labels: volume.map(function (item) { return item.companhia; }),
         datasets: [{
-            label: 'Voos',
-            data: companhiasComDados.map(function (companhia) {
-                return voosPorCompanhia[companhia.nome] || 0;
-            }),
-            backgroundColor: companhiasComDados.map(function (companhia) {
-                return obterCorCompanhia(companhia.nome);
-            }),
+            label: 'Passageiros',
+            data: volume.map(function (item) { return Number(item.passageiros); }),
+            backgroundColor: cores.marinho,
             borderRadius: 5,
             maxBarThickness: 42
         }]
     }, {
         indexAxis: 'y',
         plugins: { legend: { display: false } },
-        scales: { x: { beginAtZero: true, grid: { color: '#e3e7ef' } }, y: { grid: { display: false } } }
+        scales: {
+            x: { beginAtZero: true, grid: { color: '#e3e7ef' } },
+            y: { grid: { display: false } }
+        }
+    });
+
+    const comAvaliacao = companhias.filter(function (item) {
+        return Number(item.resolvidas) + Number(item.nao_resolvidas) > 0;
     });
 
     criarGrafico('grafico_resolucao', 'bar', {
-        labels: companhiasComDados.map(function (companhia) { return companhia.nome; }),
+        labels: comAvaliacao.map(function (item) { return item.companhia; }),
         datasets: [
             {
                 label: 'Resolvido (%)',
-                data: companhiasComDados.map(function (companhia) {
-                    return obterPercentualResolucao(companhia, dadosReclamacoes);
+                data: comAvaliacao.map(function (item) {
+                    const avaliadas = Number(item.resolvidas) + Number(item.nao_resolvidas);
+                    return (Number(item.resolvidas) / avaliadas) * 100;
                 }),
-                backgroundColor: companhiasComDados.map(function (companhia) {
-                    return obterCorCompanhia(companhia.nome);
-                }),
+                backgroundColor: cores.azul,
                 borderRadius: 4
             },
             {
                 label: 'Não resolvido (%)',
-                data: companhiasComDados.map(function (companhia) {
-                    return 100 - obterPercentualResolucao(companhia, dadosReclamacoes);
+                data: comAvaliacao.map(function (item) {
+                    const avaliadas = Number(item.resolvidas) + Number(item.nao_resolvidas);
+                    return (Number(item.nao_resolvidas) / avaliadas) * 100;
                 }),
-                backgroundColor: companhiasComDados.map(function () {
-                    return '#b9bfd0';
-                }),
+                backgroundColor: '#b9bfd0',
                 borderRadius: 4
             }
         ]
@@ -556,49 +586,81 @@ function renderizarGraficos() {
             y: { stacked: true, grid: { display: false } }
         }
     });
-
-    if (window.google && google.visualization && tipoPainel === 'destinos') {
-        desenharMapa();
-    }
 }
 
-function atualizarResumoMapa(nomeEstado, quantidadeVoos) {
-    const totalVoos = obterTotalVoos(obterDadosDeVoosFiltrados('destinos'));
-    const porcentagem = totalVoos ? ((quantidadeVoos / totalVoos) * 100).toFixed(1).replace('.', ',') : '0,0';
-    document.getElementById('resumo_mapa').textContent =
-        `${nomeEstado}: ${formatarQuantidade(quantidadeVoos)} voos (${porcentagem}% do resultado filtrado).`;
-}
+function atualizarResumoMapa(estados, filtro) {
+    const resumo = document.getElementById('resumo_mapa');
 
-function desenharMapa() {
-    if (!window.google || !google.visualization) {
+    if (!resumo) {
         return;
     }
 
-    const dadosVoos = obterDadosDeVoosFiltrados('destinos');
-    const totaisPorEstado = somarPor(dadosVoos, 'estado', 'voos');
-    const filtro = obterFiltroAtual('destinos');
+    if (!estados.length) {
+        resumo.textContent = 'Sem voos para mostrar neste período.';
+        return;
+    }
+
+    const estadosSelecionados = filtro ? obterEstadosSelecionados(filtro) : [];
+
+    if (estadosSelecionados.length > 1) {
+        const totalSelecionado = estados.reduce(function (soma, estado) {
+            return soma + Number(estado.passageiros);
+        }, 0);
+        resumo.textContent =
+            `${estadosSelecionados.map(obterNomeEstado).join(', ')}: ${formatarQuantidade(totalSelecionado)} passageiros no resultado filtrado.`;
+        return;
+    }
+
+    const selecionado = estadosSelecionados.length === 1
+        ? estados.find(function (estado) { return estado.uf === estadosSelecionados[0]; })
+        : estados[0];
+
+    if (!selecionado) {
+        resumo.textContent = 'Sem voos para mostrar neste período.';
+        return;
+    }
+
+    const total = estados.reduce(function (soma, estado) {
+        return soma + Number(estado.passageiros);
+    }, 0);
+    const porcentagem = total
+        ? ((Number(selecionado.passageiros) / total) * 100).toFixed(1).replace('.', ',')
+        : '0,0';
+
+    resumo.textContent =
+        `${selecionado.estado || selecionado.uf}: ${formatarQuantidade(selecionado.passageiros)} passageiros (${porcentagem}% do resultado filtrado).`;
+}
+
+function desenharMapa(estados, filtro) {
+    atualizarResumoMapa(estados, filtro);
+
+    if (!window.google || !google.visualization || !google.visualization.GeoChart) {
+        return;
+    }
+
     const dadosMapa = new google.visualization.DataTable();
     dadosMapa.addColumn('string', 'Estado');
-    dadosMapa.addColumn('number', 'Voos');
-    dadosMapa.addRows(estadosBrasil.map(function (estado) {
-        const codigo = estado[0].replace('BR-', '');
-        return [estado[0], totaisPorEstado[codigo] || 0];
+    dadosMapa.addColumn('number', 'Passageiros');
+    dadosMapa.addRows(estados.map(function (estado) {
+        return [`BR-${estado.uf}`, Number(estado.passageiros)];
     }));
 
-    const mapa = new google.visualization.GeoChart(document.getElementById('mapa_brasil'));
+    const elemento = document.getElementById('mapa_brasil');
+
+    if (!elemento) {
+        return;
+    }
+
+    const mapa = new google.visualization.GeoChart(elemento);
+
     google.visualization.events.addListener(mapa, 'select', function () {
         const selecao = mapa.getSelection();
         if (!selecao.length) {
             return;
         }
 
-        const codigoEstado = dadosMapa.getValue(selecao[0].row, 0);
-        const estado = estadosBrasil.find(function (item) {
-            return item[0] === codigoEstado;
-        });
-        if (estado) {
-            atualizarResumoMapa(estado[1], totaisPorEstado[estado[0].replace('BR-', '')] || 0);
-        }
+        const codigo = dadosMapa.getValue(selecao[0].row, 0).replace('BR-', '');
+        atualizarResumoMapa(estados, { estado: codigo });
     });
 
     mapa.draw(dadosMapa, {
@@ -613,141 +675,52 @@ function desenharMapa() {
         keepAspectRatio: true,
         tooltip: { textStyle: { color: cores.marinho } }
     });
+}
 
-    const estadosSelecionados = obterEstadosDoFiltro(filtro);
-    if (estadosSelecionados.length === 1) {
-        const estadoFiltrado = estadosBrasil.find(function (estado) {
-            return estado[0] === `BR-${estadosSelecionados[0]}`;
-        });
-        if (estadoFiltrado) {
-            atualizarResumoMapa(estadoFiltrado[1], totaisPorEstado[estadosSelecionados[0]] || 0);
+async function renderizarGraficos() {
+    const tipoPainel = obterPainelAtual();
+    const filtro = obterFiltroAtual(tipoPainel);
+
+    try {
+        const dados = await carregarPainel(tipoPainel);
+        esconderErro();
+
+        if (tipoPainel === 'destinos') {
+            renderizarPainelDestinos(dados, filtro);
+        } else {
+            renderizarPainelCompanhias(dados, filtro);
         }
-    } else if (estadosSelecionados.length > 1) {
-        const totalEstadosSelecionados = estadosSelecionados.reduce(function (total, codigo) {
-            return total + (totaisPorEstado[codigo] || 0);
-        }, 0);
-        document.getElementById('resumo_mapa').textContent =
-            `${estadosSelecionados.map(obterNomeEstado).join(', ')}: ${formatarQuantidade(totalEstadosSelecionados)} voos para comparação.`;
-    } else {
-        const estadoDestaque = Object.keys(totaisPorEstado).sort(function (a, b) {
-            return totaisPorEstado[b] - totaisPorEstado[a];
-        })[0];
-        const estado = estadosBrasil.find(function (item) {
-            return item[0] === `BR-${estadoDestaque}`;
-        });
-        document.getElementById('resumo_mapa').textContent = estado
-            ? `${estado[1]} lidera o período com ${formatarQuantidade(totaisPorEstado[estadoDestaque])} voos.`
-            : 'Sem voos para mostrar neste período.';
+    } catch (erro) {
+        console.log('Erro ao carregar os dados da dashboard.', erro);
+        mostrarErro(`Não foi possível carregar os dados do banco: ${erro.message}`);
     }
 }
 
-function definirTipoUsuario() {
-    const tipoUsuario = (sessionStorage.SETOR_ATUACAO || 'AGENCIA').toUpperCase();
-    const usuarioAgencia = tipoUsuario.includes('AGENC');
-
-    document.getElementById('seletor_dashboard').hidden = !usuarioAgencia;
-    document.getElementById('nome_usuario_dashboard').textContent = sessionStorage.NOME_USUARIO || 'Aircode';
-
-    if (!usuarioAgencia) {
-        document.getElementById('painel_companhias').hidden = true;
-    }
-}
-
-function obterPainelAtual() {
-    const opcaoAtiva = document.querySelector('.opcao_dashboard.ativa');
-    return opcaoAtiva ? opcaoAtiva.dataset.painel : 'destinos';
-}
-
-function obterChaveFiltros(tipoPainel) {
-    return tipoPainel === 'companhias' ? 'filtros_companhias' : 'filtros_destinos';
-}
-
-function obterNomeEstado(codigoEstado) {
-    if (codigoEstado === 'TODOS') {
-        return 'Todos os estados';
-    }
-
-    const estado = estadosBrasil.find(function (item) {
-        return item[0] === `BR-${codigoEstado}` || item[1] === codigoEstado;
-    });
-
-    return estado ? estado[1] : codigoEstado;
-}
-
-function normalizarListaEstados(estados) {
-    if (!Array.isArray(estados)) {
-        return [];
-    }
-
-    return estados.map(function (codigo) {
-        const estado = estadosBrasil.find(function (item) {
-            return item[0] === `BR-${codigo}` || item[1] === codigo;
-        });
-        return estado ? estado[0].replace('BR-', '') : codigo;
-    }).filter(function (codigo, indice, lista) {
-        return codigo && lista.indexOf(codigo) === indice;
-    });
-}
-
-function obterEstadosDoFiltro(filtro) {
-    if (!filtro) {
-        return [];
-    }
-
-    const estados = normalizarListaEstados(filtro.estados);
-    if (estados.length) {
-        return estados;
-    }
-
-    const estadoLegado = filtro.estado;
-    if (!estadoLegado || estadoLegado === 'TODOS' || estadoLegado === 'Todos os estados') {
-        return [];
-    }
-
-    return normalizarListaEstados([estadoLegado]);
-}
-
-function obterCompanhiasDoFiltro(filtro) {
-    if (!filtro) {
-        return [];
-    }
-
-    const companhias = Array.isArray(filtro.companhias) ? filtro.companhias : [];
-    if (companhias.length) {
-        return companhias.filter(function (nome, indice, lista) {
-            return nome !== 'TODAS' && lista.indexOf(nome) === indice;
-        });
-    }
-
-    const companhiaLegada = filtro.companhia;
-    return !companhiaLegada || companhiaLegada === 'TODAS' || companhiaLegada === 'Todas as companhias'
-        ? []
-        : [companhiaLegada];
-}
+// ---------------------------------------------------------------------------
+// Filtros salvos
+// ---------------------------------------------------------------------------
 
 function normalizarFiltro(filtro, tipoPainel) {
     filtro = Object.assign({}, filtro);
-    if (filtro.estado === 'Todos os estados') {
-        filtro.estado = 'TODOS';
-    }
-    if (filtro.companhia === 'Todas as companhias') {
-        filtro.companhia = 'TODAS';
-    }
-    if (filtro.problema === 'Todos os problemas') {
-        filtro.problema = 'TODOS';
-    }
 
     filtro.tipo = filtro.tipo || tipoPainel;
-    filtro.estados = obterEstadosDoFiltro(filtro);
+    filtro.estados = Array.isArray(filtro.estados) && filtro.estados.length
+        ? filtro.estados
+        : (filtro.estado && filtro.estado !== 'TODOS' ? [filtro.estado] : []);
     filtro.estado = filtro.estados.length === 1 ? filtro.estados[0] : 'TODOS';
-    filtro.nomeEstado = filtro.estados.length
-        ? filtro.estados.map(obterNomeEstado).join(', ')
-        : 'Todos os estados';
-    filtro.companhias = obterCompanhiasDoFiltro(filtro);
+    filtro.companhias = Array.isArray(filtro.companhias) && filtro.companhias.length
+        ? filtro.companhias
+        : (filtro.companhia && filtro.companhia !== 'TODAS' ? [filtro.companhia] : []);
     filtro.companhia = filtro.companhias.length === 1 ? filtro.companhias[0] : 'TODAS';
     filtro.problema = filtro.problema || 'TODOS';
     filtro.dataInicial = filtro.dataInicial || '';
     filtro.dataFinal = filtro.dataFinal || '';
+    if (filtro.dataInicial === '2025-01-01' && filtro.dataFinal === '2025-12-31') {
+        filtro.dataInicial = '2025-10-01';
+        filtro.dataFinal = '2025-10-31';
+    }
+    filtro.nomeEstado = obterNomeEstado(filtro.estado);
+
     return filtro;
 }
 
@@ -764,20 +737,7 @@ function mostrarFiltroAtivo(tipoPainel) {
     }
 
     aviso.hidden = false;
-    const estadosSelecionados = obterEstadosDoFiltro(filtro);
-    const detalhesFiltro = [
-        estadosSelecionados.length
-            ? estadosSelecionados.map(obterNomeEstado).join(', ')
-            : 'Todos os estados'
-    ];
-    if (tipoPainel === 'companhias') {
-        const companhiasSelecionadas = obterCompanhiasDoFiltro(filtro);
-        detalhesFiltro.push(companhiasSelecionadas.length ? companhiasSelecionadas.join(', ') : 'Todas as companhias');
-        if (filtro.problema !== 'TODOS') {
-            detalhesFiltro.push(filtro.problema);
-        }
-    }
-    textoAviso.textContent = `Filtro ativo: ${filtro.nome} · ${detalhesFiltro.join(' · ')}`;
+    textoAviso.textContent = `Filtro ativo: ${filtro.nome}`;
     document.getElementById('botao_editar_filtro').hidden = false;
 }
 
@@ -811,20 +771,18 @@ function mostrarFiltrosSalvos() {
 
     filtrosSalvos.forEach(function (filtroSalvo, indice) {
         const filtro = normalizarFiltro(filtroSalvo, tipoPainel);
-        const companhiasSelecionadas = obterCompanhiasDoFiltro(filtro);
-        const textoCompanhia = tipoPainel === 'companhias'
-            ? ` · ${companhiasSelecionadas.length ? companhiasSelecionadas.join(', ') : 'Todas as companhias'}`
-            : '';
-        const estadosSelecionados = obterEstadosDoFiltro(filtro);
-        const textoEstado = estadosSelecionados.length
-            ? estadosSelecionados.map(obterNomeEstado).join(', ')
-            : 'Todos os estados';
-        const textoProblema = tipoPainel === 'companhias'
-            ? ` · ${filtro.problema === 'TODOS' ? 'Todos os problemas' : filtro.problema}`
-            : '';
-        const textoPeriodo = filtro.dataInicial || filtro.dataFinal
-            ? ` · ${obterTextoDoPeriodo(filtro)}`
-            : '';
+        const partes = [filtro.estados.length
+            ? filtro.estados.map(obterNomeEstado).join(', ')
+            : obterNomeEstado(filtro.estado)];
+
+        if (tipoPainel === 'companhias') {
+            partes.push(filtro.companhias.length
+                ? filtro.companhias.map(obterNomeCompanhia).join(', ')
+                : obterNomeCompanhia(filtro.companhia));
+            partes.push(filtro.problema === 'TODOS' ? 'Todos os problemas' : filtro.problema);
+        }
+        partes.push(obterTextoDoPeriodo(filtro));
+
         const cartaoFiltro = document.createElement('article');
         cartaoFiltro.className = 'cartao_filtro_salvo';
         const detalhesFiltro = document.createElement('div');
@@ -836,7 +794,7 @@ function mostrarFiltrosSalvos() {
         const botaoExcluir = document.createElement('button');
 
         nomeFiltro.textContent = filtro.nome;
-        resumoFiltro.textContent = `${textoEstado}${textoCompanhia}${textoProblema}${textoPeriodo}`;
+        resumoFiltro.textContent = partes.join(' · ');
         acoesFiltro.className = 'acoes_filtro_salvo';
         botaoAplicar.className = 'botao_aplicar_filtro';
         botaoAplicar.type = 'button';
@@ -864,8 +822,7 @@ function mostrarFiltrosSalvos() {
 
     document.querySelectorAll('.botao_aplicar_filtro').forEach(function (botao) {
         botao.addEventListener('click', function () {
-            const filtro = filtrosSalvos[botao.dataset.indice];
-            aplicarFiltroNaDashboard(filtro, tipoPainel);
+            aplicarFiltroNaDashboard(filtrosSalvos[botao.dataset.indice], tipoPainel);
             document.getElementById('modal_filtros').hidden = true;
         });
     });
@@ -879,14 +836,13 @@ function mostrarFiltrosSalvos() {
 
     document.querySelectorAll('.botao_excluir_filtro').forEach(function (botao) {
         botao.addEventListener('click', function () {
-            const confirmouExclusao = confirm('Tem certeza que deseja excluir este filtro?');
-
-            if (!confirmouExclusao) {
+            if (!confirm('Tem certeza que deseja excluir este filtro?')) {
                 return;
             }
 
             filtrosSalvos.splice(botao.dataset.indice, 1);
             localStorage.setItem(obterChaveFiltros(tipoPainel), JSON.stringify(filtrosSalvos));
+
             const filtroAtivo = obterFiltroAtual(tipoPainel);
             if (filtroAtivo && String(filtroAtivo.id) === String(botao.dataset.id)) {
                 localStorage.removeItem(`filtro_atual_${tipoPainel}`);
@@ -917,6 +873,20 @@ function selecionarPainel(tipoPainel) {
     mostrarFiltroAtivo(painelEscolhido);
     renderizarGraficos();
 }
+
+function definirTipoUsuario() {
+    const tipoUsuario = (sessionStorage.SETOR_ATUACAO || 'AGENCIA').toUpperCase();
+    const usuarioAgencia = tipoUsuario.includes('AGENC');
+
+    document.getElementById('seletor_dashboard').hidden = !usuarioAgencia;
+    document.getElementById('nome_usuario_dashboard').textContent =
+        sessionStorage.NOME_USUARIO || 'Aircode';
+
+    if (!usuarioAgencia) {
+        document.getElementById('painel_companhias').hidden = true;
+    }
+}
+
 
 function esperarAtualizacaoDaTela() {
     return new Promise(function (resolver) {
@@ -952,11 +922,7 @@ async function gerarRelatorioPDF() {
 
     try {
         const PDF = window.jspdf.jsPDF;
-        const documento = new PDF({
-            orientation: 'landscape',
-            unit: 'mm',
-            format: 'a4'
-        });
+        const documento = new PDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
         for (let indice = 0; indice < paineisRelatorio.length; indice++) {
             const painel = paineisRelatorio[indice];
@@ -988,22 +954,18 @@ async function gerarRelatorioPDF() {
             documento.text(new Date().toLocaleDateString('pt-BR'), 270, 11);
 
             const imagem = imagemPainel.toDataURL('image/png');
-            const larguraMaxima = 277;
-            const alturaMaxima = 178;
             const proporcao = Math.min(
-                larguraMaxima / imagemPainel.width,
-                alturaMaxima / imagemPainel.height
+                277 / imagemPainel.width,
+                178 / imagemPainel.height
             );
             const larguraImagem = imagemPainel.width * proporcao;
             const alturaImagem = imagemPainel.height * proporcao;
-            const posicaoX = (297 - larguraImagem) / 2;
 
-            documento.addImage(imagem, 'PNG', posicaoX, 24, larguraImagem, alturaImagem);
+            documento.addImage(imagem, 'PNG', (297 - larguraImagem) / 2, 24, larguraImagem, alturaImagem);
             painel.elemento.hidden = true;
         }
 
-        const dataArquivo = new Date().toISOString().slice(0, 10);
-        documento.save(`relatorio-aircode-${dataArquivo}.pdf`);
+        documento.save(`relatorio-aircode-${new Date().toISOString().slice(0, 10)}.pdf`);
     } catch (erro) {
         console.log('Erro ao gerar o relatório em PDF.', erro);
         alert('Não foi possível gerar o PDF. Tente novamente.');
@@ -1020,6 +982,8 @@ async function gerarRelatorioPDF() {
 }
 
 function configurarEventos() {
+    document.getElementById('fechar_popup_alerta').addEventListener('click', mostrarProximoAlerta);
+
     document.querySelectorAll('.opcao_dashboard').forEach(function (botao) {
         botao.addEventListener('click', function () {
             selecionarPainel(botao.dataset.painel);
@@ -1027,7 +991,8 @@ function configurarEventos() {
     });
 
     document.getElementById('botao_filtros').addEventListener('click', function () {
-        document.getElementById('botao_criar_filtro').href = `filtros_criacao.html?tipo=${obterPainelAtual()}`;
+        document.getElementById('botao_criar_filtro').href =
+            `filtros_criacao.html?tipo=${obterPainelAtual()}`;
         document.getElementById('modal_filtros').hidden = false;
         mostrarFiltrosSalvos();
     });
@@ -1074,23 +1039,42 @@ function receberNovoFiltroDaUrl(parametrosUrl) {
         }
 
         localStorage.setItem(chaveFiltros, JSON.stringify(filtrosSalvos));
-        localStorage.setItem(`filtro_atual_${tipoPainel}`, JSON.stringify(normalizarFiltro(novoFiltro, tipoPainel)));
+        localStorage.setItem(
+            `filtro_atual_${tipoPainel}`,
+            JSON.stringify(normalizarFiltro(novoFiltro, tipoPainel))
+        );
         window.history.replaceState({}, '', `dashboard.html?painel=${tipoPainel}`);
     } catch (erro) {
         console.log('Não foi possível receber o novo filtro.', erro);
     }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
     definirTipoUsuario();
-    const parametrosUrl = new URLSearchParams(window.location.search);
-    receberNovoFiltroDaUrl(parametrosUrl);
-    const painelInicial = parametrosUrl.get('painel') || sessionStorage.PAINEL_DASHBOARD || 'destinos';
-    selecionarPainel(painelInicial);
     configurarEventos();
 
     if (window.google) {
         google.charts.load('current', { packages: ['geochart'], language: 'pt-BR' });
-        google.charts.setOnLoadCallback(desenharMapa);
+        google.charts.setOnLoadCallback(function () {
+            limparCache();
+            renderizarGraficos();
+        });
     }
+
+    try {
+        await carregarOpcoesFiltro();
+    } catch (erro) {
+        console.log('Erro ao carregar as opções de filtro.', erro);
+        mostrarErro(`Não foi possível carregar os dados do banco: ${erro.message}`);
+        return;
+    }
+
+    const parametrosUrl = new URLSearchParams(window.location.search);
+    receberNovoFiltroDaUrl(parametrosUrl);
+    const painelInicial = parametrosUrl.get('painel')
+        || sessionStorage.PAINEL_DASHBOARD
+        || 'destinos';
+    selecionarPainel(painelInicial);
+    verificarAlertasAtivos();
+    window.setInterval(verificarAlertasAtivos, 60000);
 });
