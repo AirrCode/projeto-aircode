@@ -155,12 +155,24 @@ h1 {
 .principal_alerta h1 {
     margin-bottom: 40px;
 }
-
 /* ---------- Formulário ---------- */
 .formulario_alerta {
     display: flex;
     flex-direction: column;
     gap: 28px;
+}
+
+.layout_formulario {
+    display: flex;
+    gap: 24px;
+}
+
+.coluna_esquerda,
+.coluna_direita {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 .formulario_alerta label {
@@ -175,7 +187,8 @@ h1 {
 }
 
 .formulario_alerta input,
-.formulario_alerta select {
+.formulario_alerta select,
+.formulario_alerta textarea {
     width: 100%;
     padding: 14px;
     border: 1px solid #d6d9e2;
@@ -185,19 +198,34 @@ h1 {
     font-size: 15px;
     letter-spacing: 0;
     text-transform: none;
+    font-family: inherit; 
 }
 
 .formulario_alerta input:hover,
-.formulario_alerta select:hover {
+.formulario_alerta select:hover,
+.formulario_alerta textarea:hover {
     border-color: #b9bfd0;
 }
 
 .formulario_alerta input:focus,
-.formulario_alerta select:focus {
+.formulario_alerta select:focus,
+.formulario_alerta textarea:focus {
     border-color: #1B39D6;
+    outline: none;
 }
 
-/* Condição + Valor numérico lado a lado */
+.campo_textarea {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.campo_textarea textarea {
+    flex: 1;
+    resize: vertical;
+    min-height: 180px; 
+}
+
 .grupo_alerta {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -207,13 +235,15 @@ h1 {
 /* ---------- Botão enviar ---------- */
 .botao_enviar_alerta {
     align-self: center;
-    margin-top: 12px;
+    margin: 12px auto 0 auto;
+    display: block;
     padding: 13px 30px;
     border: none;
     border-radius: 8px;
     background-color: #0C1B4D;
     color: #ffffff;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .botao_enviar_alerta:hover {

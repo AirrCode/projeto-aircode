@@ -27,50 +27,49 @@
     </header>
 
     <main class="principal_alerta">
-    <p class="texto_pequeno">Personalize seus alertas</p>
-    <h1>Criação de alerta</h1>
+        <p class="texto_pequeno">Personalize seus alertas</p>
+        <h1>Criação de alerta</h1>
 
-    <form class="formulario_alerta" id="formulario_alerta">
-        <label for="nome_alerta">
-            Nome
-            <input type="text" id="nome_alerta" name="nome" required>
-        </label>
+        <form class="formulario_alerta" id="formulario_alerta">
+            <div class="layout_formulario">
 
-        <label for="metrica_alvo">
-            Métrica alvo
-            <select id="metrica_alvo" name="metrica_alvo" required>
-    <option value="">Selecione uma métrica</option>
+                <div class="coluna_esquerda">
+                    <div class="campo">
+                        <label for="nome_alerta">NOME</label>
+                        <input type="text" id="nome_alerta" name="nome" required>
+                    </div>
 
-    <optgroup label="Destinos">
-        <option value="voos_destino_destaque">Voos do destino com mais voos</option>
-        <option value="faturamento_estimado">Faturamento estimado</option>
-    </optgroup>
+                    <div class="campo">
+                        <label for="metrica_alvo">ÂNCORA ALVO</label>
+                        <select id="metrica_alvo" name="metrica_alvo" required>
+                            <option value="">Selecione uma âncora</option>
+                        </select>
+                    </div>
 
-    <optgroup label="Companhias" id="grupo_metricas_companhias">
-        <option value="avaliacao_media">Avaliação média</option>
-        <option value="taxa_resolucao">Taxa de resolução</option>
-        <option value="total_reclamacoes">Total de reclamações</option>
-    </optgroup>
-</select>
-        </label>
+                    <div class="campo">
+                        <label for="filtro_especifico">FILTRO ESPECÍFICO (OPCIONAL)</label>
+                        <select id="filtro_especifico" name="filtro_especifico">
+                            <option value="">Selecione um filtro</option>
+                        </select>
+                    </div>
+                </div>
 
-        <div class="grupo_alerta">
-            <label for="condicao">
-                Condição
-                <select id="condicao" name="condicao" required>
-                    <option value="">Selecione</option>
-                    <option value="maior">Maior que</option>
-                    <option value="menor">Menor que</option>
-                    <option value="igual">Igual a</option>
-                </select>
-            </label>
+                <div class="coluna_direita">
+                    <div class="campo campo_textarea">
+                        <label for="mensagem_alerta">MENSAGEM DE ALERTA</label>
+                        <textarea id="mensagem_alerta" name="mensagem_alerta" rows="8"></textarea>
+                    </div>
+                </div>
 
-            <label for="valor_numerico">
-    Valor numérico
-    <input type="number" id="valor_numerico" name="valor_numerico" step="any" required>
-</label>
-        </div>
+            </div>
 
-        <button type="submit" class="botao_enviar_alerta">Enviar</button>
-    </form>
-</main>
+            <div class="acoes_formulario">
+                <button type="submit" class="botao_enviar_alerta">Enviar</button>
+            </div>
+        </form>
+    </main>
+
+    <script src="js/alertas.js"></script>
+</body>
+
+</html>

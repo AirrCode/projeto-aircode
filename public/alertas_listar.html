@@ -37,7 +37,7 @@
                 <span>+</span>
                 Adicionar alerta
             </a>
-        </div>  
+        </div>
 
         <input class="busca_alertas" type="search" placeholder="Buscar alerta" aria-label="Buscar alerta">
 
@@ -47,52 +47,19 @@
                     <tr>
                         <th>Nome</th>
                         <th class="coluna_criador">Criador</th>
-                        <th>Métrica</th>
+                        <th>Âncora</th>
                         <th>Status</th>
                         <th></th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr class="meu_alerta">
-                        <td>Queda de nota</td>
-                        <td class="coluna_criador">Maria Silva</td>
-                        <td>Avaliação média</td>
-                        <td><span class="status_alerta status_ativo">Ativo</span></td>
-                        <td class="coluna_acoes">
-                            <div class="acoes_alerta">
-                                <a class="botao_editar_alerta" href="alerta_criacao.html?id=1">Editar</a>
-                                <button class="botao_excluir_alerta" type="button">Excluir</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Meta de faturamento</td>
-                        <td class="coluna_criador">João Souza</td>
-                        <td>Faturamento estimado</td>
-                        <td><span class="status_alerta status_ativo">Ativo</span></td>
-                        <td class="coluna_acoes">
-                            <div class="acoes_alerta">
-                                <a class="botao_editar_alerta" href="alerta_criacao.html?id=2">Editar</a>
-                                <button class="botao_excluir_alerta" type="button">Excluir</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr class="meu_alerta">
-                        <td>Pico de reclamações</td>
-                        <td class="coluna_criador">Maria Silva</td>
-                        <td>Total de reclamações</td>
-                        <td><span class="status_alerta status_inativo">Inativo</span></td>
-                        <td class="coluna_acoes">
-                            <div class="acoes_alerta">
-                                <a class="botao_editar_alerta" href="alerta_criacao.html?id=3">Editar</a>
-                                <button class="botao_excluir_alerta" type="button">Excluir</button>
-                            </div>
-                        </td>
-                    </tr>
+                <tbody id="tabela_corpo_alertas">
                 </tbody>
             </table>
         </div>
     </main>
+
+    <script src="js/lista_alertas.js"></script>
+
 </body>
 
 </html>
