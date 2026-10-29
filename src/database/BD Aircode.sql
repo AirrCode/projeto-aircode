@@ -122,6 +122,17 @@ CREATE TABLE reclamacao (
     CONSTRAINT fk_reclamacao_companhia FOREIGN KEY (id_companhia) REFERENCES companhia(id_companhia)
 );
 
+CREATE TABLE log_importacao (
+    id_log INT AUTO_INCREMENT PRIMARY KEY,
+    arquivo_voos VARCHAR(255) NOT NULL,
+    linhas_voos INT NOT NULL,
+    arquivo_reclamacoes VARCHAR(255) NOT NULL,
+    linhas_reclamacoes INT NOT NULL,
+    data_hora_inicio DATETIME NOT NULL,
+    data_hora_fim DATETIME NOT NULL
+);
+
+
 INSERT INTO empresa (razao_social, cnpj, setor_atuacao, status_aprovacao)
 VALUES ('Aircode', '00000000000000', 'AGENCIA', 'APROVADO');
 
