@@ -69,6 +69,7 @@ uvicorn main:app --reload --port 8000
 | `python` não é reconhecido | Reinstale marcando "Add python.exe to PATH" ou use `py` |
 | O PowerShell bloqueia o `activate` | Use o Prompt de Comando (cmd) |
 | "Não consegui responder agora" | O servidor Python está desligado ou em outra porta |
+| `No API key was provided` | Confira se `GEMINI_API_KEY` está preenchida no arquivo `chatbot/.env` |
 | Erro 404 de modelo | Troque o `MODELO` no `.env` por um nome que apareça no AI Studio |
 | Erro de chave inválida | Confira o `.env` e rode o `uvicorn` de dentro da pasta `chatbot` |
 | Erro 429 ou 503 | Limite de uso ou Gemini lotado. Espere uns minutos |

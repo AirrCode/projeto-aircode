@@ -3,6 +3,8 @@ const tipoFiltro = parametrosUrl.get('tipo') || 'destinos';
 const idFiltroEmEdicao = parametrosUrl.get('editar');
 let estadosSelecionados = [];
 let companhiasSelecionadas = [];
+let problemasSelecionados = [];
+const LIMITE_COMPANHIAS = 5;
 
 function obterChaveFiltro() {
     return tipoFiltro === 'companhias' ? 'filtros_companhias' : 'filtros_destinos';
@@ -29,6 +31,12 @@ function renderizarItensComparacao(containerId, selecionados, seletorId, todos, 
     const container = document.getElementById(containerId);
     const seletor = document.getElementById(seletorId);
     container.replaceChildren();
+    if (containerId === 'companhias_selecionadas') {
+        const avisoLimite = document.getElementById('aviso_limite_companhia');
+        avisoLimite.textContent = selecionados.length >= LIMITE_COMPANHIAS
+            ? 'Limite de 5 companhias atingido. Remova uma para adicionar outra.'
+            : 'Selecione no máximo 5 companhias.';
+    }
 
     if (selecionados.length === 0) {
         const todosSelecionados = document.createElement('span');
@@ -86,6 +94,52 @@ function adicionarItemComparacao(seletorId, selecionados, todos, containerId, no
     renderizarItensComparacao(containerId, selecionados, seletorId, todos, nomeTodos);
 }
 
+function adicionarCompanhiaSelecionada() {
+    const seletor = document.getElementById('companhia_filtro');
+    const avisoLimite = document.getElementById('aviso_limite_companhia');
+    if (seletor.value !== 'TODAS'
+        && !companhiasSelecionadas.includes(seletor.value)
+        && companhiasSelecionadas.length >= LIMITE_COMPANHIAS) {
+        avisoLimite.textContent = 'Limite de 5 companhias atingido. Remova uma para adicionar outra.';
+        return;
+    }
+
+    adicionarItemComparacao('companhia_filtro', companhiasSelecionadas, 'TODAS', 'companhias_selecionadas', 'Todas as companhias');
+}
+
+async function carregarOpcoesFiltro() {
+    const resposta = await fetch('/dashboard/filtros');
+    let dados;
+    try {
+        dados = await resposta.json();
+    } catch (erro) {
+        throw new Error('O servidor retornou uma resposta inválida ao carregar as opções.');
+    }
+
+    if (!resposta.ok) {
+        throw new Error(dados.mensagem || 'Não foi possível carregar as opções do filtro.');
+    }
+    if (!Array.isArray(dados.companhias) || !Array.isArray(dados.problemas)) {
+        throw new Error('O servidor não retornou a lista de companhias e grupos de reclamação.');
+    }
+
+    const seletorCompanhia = document.getElementById('companhia_filtro');
+    dados.companhias.forEach(function (companhia) {
+        const opcao = document.createElement('option');
+        opcao.value = companhia.nome;
+        opcao.textContent = companhia.nome;
+        seletorCompanhia.appendChild(opcao);
+    });
+
+    const seletorProblema = document.getElementById('problema_filtro');
+    dados.problemas.forEach(function (problema) {
+        const opcao = document.createElement('option');
+        opcao.value = problema;
+        opcao.textContent = problema;
+        seletorProblema.appendChild(opcao);
+    });
+}
+
 function configurarTipoFiltro() {
     const filtroDeCompanhia = tipoFiltro === 'companhias';
     const titulo = document.getElementById('titulo_criacao_filtro');
@@ -102,6 +156,7 @@ function configurarTipoFiltro() {
     if (!idFiltroEmEdicao) {
         renderizarItensComparacao('estados_selecionados', estadosSelecionados, 'estado_filtro', 'TODOS', 'Todos os estados');
         renderizarItensComparacao('companhias_selecionadas', companhiasSelecionadas, 'companhia_filtro', 'TODAS', 'Todas as companhias');
+        renderizarItensComparacao('problemas_selecionados', problemasSelecionados, 'problema_filtro', 'TODOS', 'Todos os problemas');
         return;
     }
 
@@ -128,16 +183,20 @@ function configurarTipoFiltro() {
     if (companhiasSelecionadas.length === 0) {
         companhiasSelecionadas = obterListaLegada(filtro.companhia, 'TODAS');
     }
+    problemasSelecionados = obterListaLegada(filtro.problemas, 'TODOS');
+    if (problemasSelecionados.length === 0) {
+        problemasSelecionados = obterListaLegada(filtro.problema, 'TODOS');
+    }
     renderizarItensComparacao('estados_selecionados', estadosSelecionados, 'estado_filtro', 'TODOS', 'Todos os estados');
     renderizarItensComparacao('companhias_selecionadas', companhiasSelecionadas, 'companhia_filtro', 'TODAS', 'Todas as companhias');
-    document.getElementById('problema_filtro').value = filtro.problema || 'TODOS';
+    renderizarItensComparacao('problemas_selecionados', problemasSelecionados, 'problema_filtro', 'TODOS', 'Todos os problemas');
     const periodoLegado = filtro.dataInicial === '2025-01-01'
         && filtro.dataFinal === '2025-12-31';
     document.getElementById('data_inicial_filtro').value = periodoLegado
-        ? '2025-10-01'
+        ? '2025-11-01'
         : filtro.dataInicial || '';
     document.getElementById('data_final_filtro').value = periodoLegado
-        ? '2025-10-31'
+        ? '2025-11-30'
         : filtro.dataFinal || '';
     document.querySelector('.botao_salvar_filtro').textContent = 'Salvar alterações';
 }
@@ -147,7 +206,11 @@ document.getElementById('adicionar_estado_filtro').addEventListener('click', fun
 });
 
 document.getElementById('adicionar_companhia_filtro').addEventListener('click', function () {
-    adicionarItemComparacao('companhia_filtro', companhiasSelecionadas, 'TODAS', 'companhias_selecionadas', 'Todas as companhias');
+    adicionarCompanhiaSelecionada();
+});
+
+document.getElementById('adicionar_problema_filtro').addEventListener('click', function () {
+    adicionarItemComparacao('problema_filtro', problemasSelecionados, 'TODOS', 'problemas_selecionados', 'Todos os problemas');
 });
 
 document.getElementById('formulario_filtro').addEventListener('submit', function (evento) {
@@ -156,9 +219,14 @@ document.getElementById('formulario_filtro').addEventListener('submit', function
     const filtrosSalvos = JSON.parse(localStorage.getItem(obterChaveFiltro()) || '[]');
     const seletorEstado = document.getElementById('estado_filtro');
     const seletorCompanhia = document.getElementById('companhia_filtro');
-    const seletorProblema = document.getElementById('problema_filtro');
     const dataInicial = document.getElementById('data_inicial_filtro').value;
     const dataFinal = document.getElementById('data_final_filtro').value;
+
+    if (companhiasSelecionadas.length > LIMITE_COMPANHIAS) {
+        document.getElementById('aviso_limite_companhia').textContent =
+            'Remova companhias até restarem no máximo 5 antes de salvar.';
+        return;
+    }
 
     if (dataInicial && dataFinal && dataInicial > dataFinal) {
         document.getElementById('data_final_filtro').setCustomValidity('A data final deve ser igual ou posterior à data inicial.');
@@ -186,7 +254,10 @@ document.getElementById('formulario_filtro').addEventListener('submit', function
         companhia: tipoFiltro === 'companhias' && companhiasSelecionadas.length === 1
             ? companhiasSelecionadas[0]
             : 'TODAS',
-        problema: tipoFiltro === 'companhias' ? seletorProblema.value : 'TODOS',
+        problemas: tipoFiltro === 'companhias' ? problemasSelecionados.slice() : [],
+        problema: tipoFiltro === 'companhias' && problemasSelecionados.length === 1
+            ? problemasSelecionados[0]
+            : 'TODOS',
         dataInicial: dataInicial,
         dataFinal: dataFinal
     };
@@ -210,4 +281,25 @@ document.getElementById('data_final_filtro').addEventListener('input', function 
     this.setCustomValidity('');
 });
 
-configurarTipoFiltro();
+async function iniciarFormularioFiltro() {
+    const botaoSalvar = document.querySelector('.botao_salvar_filtro');
+    if (tipoFiltro !== 'companhias') {
+        botaoSalvar.disabled = false;
+        configurarTipoFiltro();
+        return;
+    }
+
+    try {
+        await carregarOpcoesFiltro();
+    } catch (erro) {
+        const aviso = document.getElementById('erro_opcoes_filtro');
+        aviso.textContent = `Não foi possível carregar companhias e grupos de reclamação: ${erro.message}`;
+        aviso.hidden = false;
+        return;
+    }
+
+    botaoSalvar.disabled = false;
+    configurarTipoFiltro();
+}
+
+iniciarFormularioFiltro();

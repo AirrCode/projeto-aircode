@@ -14,79 +14,43 @@ function lerIndicador(idValor, idDetalhe) {
     return detalhe ? valor + " (" + detalhe + ")" : valor;
 }
 
-function listarPorTotal(totais, limite, nomear) {
-    const chaves = Object.keys(totais);
-    const totalGeral = chaves.reduce(function (soma, chave) {
-        return soma + totais[chave];
-    }, 0);
-
-    return chaves
-        .sort(function (a, b) {
-            return totais[b] - totais[a];
-        })
-        .slice(0, limite)
-        .map(function (chave) {
-            return {
-                nome: nomear ? nomear(chave) : chave,
-                quantidade: Math.round(totais[chave]),
-                percentual: totalGeral ? Number(((totais[chave] / totalGeral) * 100).toFixed(1)) : 0
-            };
-        });
-}
-
 function montarContextoDashboard() {
     const painel = obterPainelAtual();
     const filtro = obterFiltroAtual(painel);
-    const dadosVoos = obterDadosDeVoosFiltrados(painel);
-    const voosPorEstado = somarPor(dadosVoos, "estado", "voos");
-    const voosPorCompanhia = somarPor(dadosVoos, "companhia", "voos");
-
+    const estados = filtro ? obterEstadosSelecionados(filtro) : [];
+    const companhias = filtro ? obterCompanhiasSelecionadas(filtro) : [];
     const contexto = {
         painel: painel,
         tipo_empresa: sessionStorage.SETOR_ATUACAO || "AGENCIA",
         periodo: obterTextoDoPeriodo(filtro),
         filtro_ativo: filtro ? {
             nome: filtro.nome,
-            estado: obterEstadosDoFiltro(filtro).length
-                ? obterEstadosDoFiltro(filtro).map(obterNomeEstado).join(", ")
+            estado: estados.length
+                ? estados.map(obterNomeEstado).join(", ")
                 : "Todos os estados",
-            companhia: obterCompanhiasDoFiltro(filtro).length
-                ? obterCompanhiasDoFiltro(filtro).join(", ")
+            companhia: companhias.length
+                ? companhias.map(obterNomeCompanhia).join(", ")
                 : "Todas as companhias",
-            problema: filtro.problema
+            problema: filtro.problemas.length
+                ? filtro.problemas.join(", ")
+                : "Todos os problemas"
         } : null,
-        total_voos: Math.round(obterTotalVoos(dadosVoos)),
-        voos_por_estado_top8: listarPorTotal(voosPorEstado, 8, obterNomeEstado),
-        voos_por_companhia: listarPorTotal(voosPorCompanhia, 10)
+        indicadores: {}
     };
 
     if (painel === "destinos") {
         contexto.indicadores = {
             "Destinos mais procurados": lerTexto("kpi_destinos_valor"),
             "Destino com mais voos": lerIndicador("kpi_estado_destaque", "kpi_estado_destaque_detalhe"),
-            "Faturamento estimado": lerIndicador("kpi_faturamento", "kpi_faturamento_detalhe")
+            "Quantidade de viajantes internacionais": lerIndicador("kpi_internacionais_valor", "kpi_internacionais_detalhe")
         };
     } else {
-        const dadosReclamacoes = obterDadosDeReclamacoes(painel);
-        const reclamacoesPorProblema = somarPor(dadosReclamacoes, "problema", "quantidade");
-
         contexto.indicadores = {
             "Avaliação média": lerIndicador("kpi_avaliacao", "kpi_avaliacao_detalhe"),
             "Taxa de resolução": lerIndicador("kpi_resolucao", "kpi_resolucao_detalhe"),
             "Total de reclamações": lerIndicador("kpi_reclamacoes", "kpi_reclamacoes_detalhe"),
             "Problema mais frequente": lerIndicador("kpi_problema", "kpi_problema_detalhe")
         };
-        contexto.reclamacoes_por_problema = listarPorTotal(reclamacoesPorProblema, 10);
-        contexto.taxa_resolucao_por_companhia = companhiasBase
-            .filter(function (companhia) {
-                return (voosPorCompanhia[companhia.nome] || 0) > 0;
-            })
-            .map(function (companhia) {
-                return {
-                    nome: companhia.nome,
-                    resolvido_percentual: Math.round(obterPercentualResolucao(companhia, dadosReclamacoes))
-                };
-            });
     }
 
     return contexto;
@@ -152,8 +116,11 @@ async function enviarPergunta(evento) {
         if (!resposta.ok) {
             let detalhe = "";
             try {
-                detalhe = (await resposta.json()).detail;
-            } catch (e) {}
+                const corpo = await resposta.json();
+                detalhe = corpo.detail || corpo.mensagem || "";
+            } catch (erroJson) {
+                detalhe = "";
+            }
             throw new Error(detalhe || "Status " + resposta.status);
         }
 
@@ -165,9 +132,9 @@ async function enviarPergunta(evento) {
         historicoChat = historicoChat.slice(-10);
     } catch (erro) {
         console.log("Erro no chatbot: ", erro);
-        mensagemResposta.textContent = erro.message.indexOf("Limite") == 0
-            ? erro.message
-            : "Não consegui responder agora. Confira se o servidor do chatbot está ligado.";
+        mensagemResposta.textContent = erro instanceof TypeError
+            ? "Não foi possível conectar ao servidor do chatbot. Confira se ele está ligado e tente novamente."
+            : erro.message || "Não consegui responder agora. Tente novamente.";
     } finally {
         chatOcupado = false;
         botao.disabled = false;

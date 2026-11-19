@@ -29,6 +29,7 @@
         <h1 id="titulo_criacao_filtro">Filtro de destinos</h1>
 
         <form id="formulario_filtro" class="formulario_filtro">
+            <p id="erro_opcoes_filtro" class="aviso_erro_filtro" role="alert" hidden></p>
             <label>
                 Nome do filtro
                 <input id="nome_filtro" type="text" value="Turistas do Sudeste - Verão" required>
@@ -84,25 +85,26 @@
                                 Companhia aérea
                                 <select id="companhia_filtro">
                                     <option value="TODAS">Todas as companhias</option>
-                                    <option value="LATAM">LATAM</option>
-                                    <option value="GOL">GOL</option>
-                                    <option value="Azul">Azul</option>
                                 </select>
                             </label>
                             <button class="botao_adicionar_comparacao" id="adicionar_companhia_filtro" type="button">+ Adicionar companhia</button>
                         </div>
                         <div class="itens_comparacao" id="companhias_selecionadas" aria-live="polite"></div>
+                        <small class="texto_limite_companhias" id="aviso_limite_companhia" aria-live="polite">Selecione no máximo 5 companhias.</small>
                     </div>
 
-                    <label id="campo_problema_filtro">
-                        Categoria de problema
-                        <select id="problema_filtro">
-                            <option value="TODOS">Todos os problemas</option>
-                            <option value="Atraso">Atraso</option>
-                            <option value="Cancelamento">Cancelamento</option>
-                            <option value="Extravio de bagagem">Extravio de bagagem</option>
-                        </select>
-                    </label>
+                    <div class="campo_comparacao" id="campo_problema_filtro">
+                        <div class="seletor_multiplo">
+                            <label for="problema_filtro">
+                                Categoria de problema
+                                <select id="problema_filtro">
+                                    <option value="TODOS">Todos os problemas</option>
+                                </select>
+                            </label>
+                            <button class="botao_adicionar_comparacao" id="adicionar_problema_filtro" type="button">+ Adicionar problema</button>
+                        </div>
+                        <div class="itens_comparacao" id="problemas_selecionados" aria-live="polite"></div>
+                    </div>
                 </div>
 
                 <div>
@@ -120,7 +122,7 @@
                 </div>
             </div>
 
-            <button class="botao_salvar_filtro" type="submit">Salvar filtro</button>
+            <button class="botao_salvar_filtro" type="submit" disabled>Salvar filtro</button>
         </form>
     </main>
 

@@ -5,6 +5,7 @@ const indicadoresAncora = {
     destinos: 'Destinos mais procurados',
     destaque: 'Destino com maior crescimento',
     faturamento: 'Faturamento estimado',
+    internacionais: 'Quantidade de viajantes internacionais',
     avaliacao: 'Avaliação média',
     resolucao: 'Taxa de resolução',
     reclamacao: 'Total de reclamações',
@@ -99,27 +100,43 @@ function montarFormularioAncora(ancora, estados) {
     });
 
     const selectPosicao = document.getElementById('posicao_ancora');
-    for (let posicao = 1; posicao <= 3; posicao++) {
-        const opcao = document.createElement('option');
-        opcao.value = String(posicao);
-        opcao.textContent = `${posicao}º lugar`;
-        selectPosicao.appendChild(opcao);
-    }
-
     document.getElementById('nome_ancora').value = ancora.nome_ancora || '';
     selectEstado.value = ancora.estado || '';
-    selectPosicao.value = ancora.posicao_top || '';
     document.getElementById('operador_ancora').value = ancora.operador_comparacao || '>=';
     document.getElementById('valor_ancora').value = ancora.valor_alvo ?? '';
 
+    function atualizarPosicoesRanking() {
+        const posicaoSalva = selectPosicao.value || String(ancora.posicao_top || '');
+        const limite = selectIndicador.value === 'destaque' ? 3 : 5;
+        selectPosicao.replaceChildren();
+
+        const opcaoInicial = document.createElement('option');
+        opcaoInicial.value = '';
+        opcaoInicial.textContent = 'Selecione a posição';
+        selectPosicao.appendChild(opcaoInicial);
+        for (let posicao = 1; posicao <= limite; posicao++) {
+            const opcao = document.createElement('option');
+            opcao.value = String(posicao);
+            opcao.textContent = `${posicao}º lugar`;
+            selectPosicao.appendChild(opcao);
+        }
+
+        selectPosicao.value = posicaoSalva;
+    }
+
+    atualizarPosicoesRanking();
+    selectPosicao.value = ancora.posicao_top || '';
+
     function atualizarCamposIndicador() {
-        const ranking = ['destinos', 'destaque'].includes(selectIndicador.value);
+        const ranking = ['destinos', 'destaque', 'internacionais'].includes(selectIndicador.value);
         document.getElementById('campos_posicao_ancora').hidden = !ranking;
         document.getElementById('campos_valor_ancora').hidden = ranking;
         document.getElementById('estado_ancora').required = ranking;
         document.getElementById('posicao_ancora').required = ranking;
         document.getElementById('valor_ancora').required = !ranking;
-        if (!ranking) {
+        if (ranking) {
+            atualizarPosicoesRanking();
+        } else {
             const descricao = obterDescricaoValor(selectIndicador.value);
             const rotulo = document.getElementById('rotulo_valor_ancora');
             rotulo.firstChild.textContent = `${descricao.label} `;
@@ -134,7 +151,7 @@ function montarFormularioAncora(ancora, estados) {
     document.getElementById('form_ancora').addEventListener('submit', async function (evento) {
         evento.preventDefault();
         const indicador = selectIndicador.value;
-        const ranking = ['destinos', 'destaque'].includes(indicador);
+        const ranking = ['destinos', 'destaque', 'internacionais'].includes(indicador);
         const dados = {
             idUsuario: idUsuarioAncora,
             nome: document.getElementById('nome_ancora').value.trim(),

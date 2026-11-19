@@ -49,6 +49,10 @@ body {
     gap: 18px;
 }
 
+#div_msg{
+    color: white;
+}
+
 .formulario h2 {
     color: white;
     font-size: 32px;

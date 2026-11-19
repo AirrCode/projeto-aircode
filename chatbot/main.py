@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -8,10 +9,16 @@ from google import genai
 from google.genai import errors, types
 from pydantic import BaseModel
 
-load_dotenv()
+load_dotenv(Path(__file__).with_name(".env"))
 
 MODELO = os.getenv("MODELO", "gemini-flash-latest")
-cliente = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+CHAVE_GEMINI = os.getenv("GEMINI_API_KEY")
+if not CHAVE_GEMINI:
+    raise RuntimeError(
+        "GEMINI_API_KEY não encontrada. Configure a chave no arquivo chatbot/.env."
+    )
+
+cliente = genai.Client(api_key=CHAVE_GEMINI)
 
 app = FastAPI()
 
@@ -76,6 +83,10 @@ def conversar(pergunta: Pergunta):
         print("Erro na API:", erro)
         if erro.code == 429:
             raise HTTPException(status_code=429, detail="Limite de uso gratuito atingido. Espere um minuto e tente de novo.")
+        if erro.code in (401, 403):
+            raise HTTPException(status_code=502, detail="A chave do Gemini foi recusada. Confira GEMINI_API_KEY no arquivo chatbot/.env.")
+        if erro.code == 404:
+            raise HTTPException(status_code=502, detail="O modelo configurado não foi encontrado. Confira MODELO no arquivo chatbot/.env.")
         raise HTTPException(status_code=502, detail="Erro ao consultar o modelo.")
 
     texto = resposta.text or "Não consegui gerar uma resposta. Tente reformular a pergunta."

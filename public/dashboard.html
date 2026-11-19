@@ -66,7 +66,7 @@
 
         <section id="painel_destinos" class="painel_dashboard">
             <div class="grade_cartoes grade_cartoes_destinos">
-                <article class="cartao_indicador">
+                <article class="cartao_indicador cartao_ranking cartao_top_destinos">
                     <div class="cabecalho_indicador">
                         <span id="kpi_destinos_titulo">Destinos mais procurados</span>
                         <a href="ancoras.html?kpi=destinos">
@@ -74,7 +74,7 @@
                         </a>
                     </div>
                     <div class="cartao_conteudo">
-                        <strong id="kpi_destinos_valor"></strong>
+                        <strong id="kpi_destinos_valor" class="ranking_kpi ranking_kpi_destinos"></strong>
                     </div>
                     <p class="periodo_kpi" data-periodo-kpi="destinos"></p>
                 </article>
@@ -93,16 +93,16 @@
                     <p class="periodo_kpi" data-periodo-comparativo="destinos"></p>
                 </article>
 
-                <article class="cartao_indicador indicador_centralizado">
+                <article class="cartao_indicador cartao_ranking">
                     <div class="cabecalho_indicador">
-                        <span>Faturamento estimado</span>
-                        <a href="ancoras.html?kpi=faturamento">
+                        <span>Quantidade de viajantes internacionais</span>
+                        <a href="ancoras.html?kpi=internacionais">
                             <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
                         </a>
                     </div>
                     <div class="cartao_conteudo">
-                        <strong id="kpi_faturamento"></strong>
-                        <small id="kpi_faturamento_detalhe"></small>
+                        <strong id="kpi_internacionais_valor" class="ranking_kpi ranking_kpi_internacionais"></strong>
+                        <small id="kpi_internacionais_detalhe"></small>
                     </div>
                     <p class="periodo_kpi" data-periodo-kpi="destinos"></p>
                 </article>
@@ -131,7 +131,7 @@
             <div class="grade_cartoes grade_cartoes_companhias">
                 <article class="cartao_indicador indicador_centralizado">
                     <div class="cabecalho_indicador">
-                        <span>Avaliação média - LATAM</span>
+                        <span id="titulo_kpi_avaliacao">Avaliação média</span>
                         <a href="ancoras.html?kpi=avaliacao">
                             <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
                         </a>
@@ -139,13 +139,14 @@
                     <div class="cartao_conteudo">
                         <strong id="kpi_avaliacao"></strong>
                         <small id="kpi_avaliacao_detalhe"></small>
+                        <div id="kpi_avaliacao_lista" class="lista_kpi_companhias" hidden></div>
                     </div>
                     <p class="periodo_kpi" data-periodo-kpi="companhias"></p>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
                     <div class="cabecalho_indicador">
-                        <span>Taxa de resolução - LATAM</span>
+                        <span id="titulo_kpi_resolucao">Taxa de resolução</span>
                         <a href="ancoras.html?kpi=resolucao">
                             <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
                         </a>
@@ -153,13 +154,14 @@
                     <div class="cartao_conteudo">
                         <strong id="kpi_resolucao"></strong>
                         <small id="kpi_resolucao_detalhe"></small>
+                        <div id="kpi_resolucao_lista" class="lista_kpi_companhias" hidden></div>
                     </div>
                     <p class="periodo_kpi" data-periodo-kpi="companhias"></p>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
                     <div class="cabecalho_indicador">
-                        <span>Total de reclamações - LATAM</span>
+                        <span id="titulo_kpi_reclamacoes">Total de reclamações</span>
                         <a href="ancoras.html?kpi=reclamacao">
                             <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
                         </a>
@@ -167,13 +169,14 @@
                     <div class="cartao_conteudo">
                         <strong id="kpi_reclamacoes"></strong>
                         <small id="kpi_reclamacoes_detalhe"></small>
+                        <div id="kpi_reclamacoes_lista" class="lista_kpi_companhias" hidden></div>
                     </div>
                     <p class="periodo_kpi" data-periodo-kpi="companhias"></p>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
                     <div class="cabecalho_indicador">
-                        <span>Problema mais frequente - LATAM</span>
+                        <span id="titulo_kpi_problema">Problema mais frequente</span>
                         <a href="ancoras.html?kpi=frequente">
                             <img src="assets/imgs/ancora.png" alt="Cadastrar âncora">
                         </a>
@@ -181,6 +184,7 @@
                     <div class="cartao_conteudo">
                         <strong id="kpi_problema"></strong>
                         <small id="kpi_problema_detalhe"></small>
+                        <div id="kpi_problema_lista" class="lista_kpi_companhias" hidden></div>
                     </div>
                     <p class="periodo_kpi" data-periodo-kpi="companhias"></p>
                 </article>
@@ -206,11 +210,22 @@
     </main>
 
     <div class="fundo_popup_alerta" id="popup_alerta" hidden>
-        <section class="popup_alerta" role="alertdialog" aria-modal="true" aria-labelledby="popup_titulo">
-            <p class="texto_pequeno">Meta atingida</p>
-            <h2 id="popup_titulo"></h2>
-            <p id="popup_mensagem"></p>
-            <button type="button" id="fechar_popup_alerta">Entendi</button>
+        <section class="popup_alerta" role="region" aria-label="Alerta disparado">
+            <header class="cabecalho_popup_alerta">
+                <p class="texto_pequeno">Alerta disparado</p>
+                <button type="button" id="fechar_popup_alerta" aria-label="Fechar alerta">×</button>
+            </header>
+            <div class="conteudo_popup_alerta" id="abrir_popup_alerta" role="button" tabindex="0">
+                <h2 id="popup_titulo"></h2>
+                <p id="popup_mensagem"></p>
+                <p class="detalhe_popup_alerta"><strong>Âncora:</strong> <span id="popup_ancora"></span></p>
+                <p class="detalhe_popup_alerta" id="linha_filtro_popup" hidden>
+                    <strong>Filtro:</strong> <span id="popup_filtro"></span>
+                </p>
+            </div>
+            <div class="progresso_popup_alerta" aria-hidden="true">
+                <span id="barra_popup_alerta"></span>
+            </div>
         </section>
     </div>
 
