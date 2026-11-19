@@ -9,13 +9,22 @@ function lerFiltro(req) {
     if (!Array.isArray(companhias)) {
         companhias = companhias ? [companhias] : [];
     }
+    var problemas = req.query.problema;
+    if (!Array.isArray(problemas)) {
+        problemas = problemas && problemas !== "TODOS" ? [problemas] : [];
+    } else {
+        problemas = problemas.filter(function (problema) {
+            return problema && problema !== "TODOS";
+        });
+    }
 
     return {
         estados: estados,
         companhias: companhias,
         estado: req.query.estado,
         companhia: req.query.companhia,
-        problema: req.query.problema,
+        problemas: problemas,
+        problema: problemas.length === 1 ? problemas[0] : "TODOS",
         dataInicial: req.query.dataInicial,
         dataFinal: req.query.dataFinal
     };

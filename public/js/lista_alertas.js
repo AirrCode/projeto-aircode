@@ -26,14 +26,17 @@ function dadosDoFiltro(alerta) {
     const companhias = Array.isArray(filtro.companhias) && filtro.companhias.length
         ? filtro.companhias
         : (filtro.companhia && filtro.companhia !== 'TODAS' ? [filtro.companhia] : []);
+    const problemas = Array.isArray(filtro.problemas) && filtro.problemas.length
+        ? filtro.problemas
+        : (filtro.problema && filtro.problema !== 'TODOS' ? [filtro.problema] : []);
 
-    const inicio = filtro.dataInicial || '2025-10-01';
-    const fim = filtro.dataFinal || '2025-10-31';
+    const inicio = filtro.dataInicial || '2025-11-01';
+    const fim = filtro.dataFinal || '2025-11-30';
     return {
         nome: filtro.nome || 'Filtro salvo',
         estados: estados,
         companhias: companhias,
-        problema: filtro.problema && filtro.problema !== 'TODOS' ? filtro.problema : '',
+        problema: problemas.join(', '),
         inicio: inicio,
         fim: fim
     };

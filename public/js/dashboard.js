@@ -16,18 +16,12 @@ let opcoesFiltro = { estados: [], companhias: [], problemas: [], periodo: {} };
 const cacheDados = {};
 let alertasDisparados = [];
 let verificandoAlertas = false;
+let alertaAtual = null;
+let temporizadorAlerta = null;
 
 function formatarQuantidade(numero) {
     const valor = Number(numero || 0);
     return valor.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-}
-
-function formatarReais(valor) {
-    return Number(valor || 0).toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-        maximumFractionDigits: 0
-    });
 }
 
 function definirTexto(id, texto) {
@@ -114,8 +108,8 @@ function obterDatasDoPeriodo(filtro) {
     }
 
     return {
-        dataInicial: '2025-10-01',
-        dataFinal: '2025-10-31'
+        dataInicial: '2025-11-01',
+        dataFinal: '2025-11-30'
     };
 }
 
@@ -207,9 +201,12 @@ function montarParametros(filtro) {
     obterCompanhiasSelecionadas(filtro).forEach(function (companhia) {
         parametros.append('companhias', companhia);
     });
-    if (filtro.problema && filtro.problema !== 'TODOS') {
-        parametros.set('problema', filtro.problema);
-    }
+    const problemas = Array.isArray(filtro.problemas) && filtro.problemas.length
+        ? filtro.problemas
+        : (filtro.problema && filtro.problema !== 'TODOS' ? [filtro.problema] : []);
+    problemas.forEach(function (problema) {
+        parametros.append('problema', problema);
+    });
     const periodo = obterDatasDoPeriodo(filtro);
     parametros.set('dataInicial', periodo.dataInicial);
     parametros.set('dataFinal', periodo.dataFinal);
@@ -279,7 +276,11 @@ function esconderErro() {
 
 function mostrarProximoAlerta() {
     const popup = document.getElementById('popup_alerta');
+    const barra = document.getElementById('barra_popup_alerta');
     const alerta = alertasDisparados.shift();
+    window.clearTimeout(temporizadorAlerta);
+    alertaAtual = alerta || null;
+
     if (!alerta) {
         popup.hidden = true;
         delete popup.dataset.alertaId;
@@ -288,9 +289,65 @@ function mostrarProximoAlerta() {
 
     document.getElementById('popup_titulo').textContent = alerta.nome;
     document.getElementById('popup_mensagem').textContent = alerta.mensagem;
+    document.getElementById('popup_ancora').textContent = alerta.ancora || '';
+    document.getElementById('popup_filtro').textContent =
+        alerta.filtro && alerta.filtro.nome ? alerta.filtro.nome : '';
+    document.getElementById('linha_filtro_popup').hidden = !alerta.filtro;
     popup.dataset.alertaId = String(alerta.id);
     popup.hidden = false;
-    document.getElementById('fechar_popup_alerta').focus();
+    barra.classList.remove('ativo');
+    void barra.offsetWidth;
+    barra.classList.add('ativo');
+    temporizadorAlerta = window.setTimeout(mostrarProximoAlerta, 10000);
+}
+
+async function abrirAlertaNaDashboard() {
+    if (!alertaAtual) {
+        return;
+    }
+
+    const alerta = alertaAtual;
+    const indicadoresCompanhias = ['avaliacao', 'resolucao', 'reclamacao', 'frequente'];
+    const tipoPainel = alerta.filtro && alerta.filtro.tipo
+        ? alerta.filtro.tipo
+        : (indicadoresCompanhias.includes(alerta.indicador) ? 'companhias' : 'destinos');
+
+    mostrarProximoAlerta();
+
+    if (alerta.filtro) {
+        localStorage.setItem(
+            `filtro_atual_${tipoPainel}`,
+            JSON.stringify(normalizarFiltro(alerta.filtro, tipoPainel))
+        );
+    } else {
+        localStorage.removeItem(`filtro_atual_${tipoPainel}`);
+    }
+
+    limparCache();
+    await selecionarPainel(tipoPainel);
+
+    const idsKpi = {
+        destinos: 'kpi_destinos_valor',
+        destaque: 'kpi_estado_destaque',
+        faturamento: 'kpi_faturamento',
+        internacionais: 'kpi_internacionais_valor',
+        avaliacao: 'kpi_avaliacao',
+        resolucao: 'kpi_resolucao',
+        reclamacao: 'kpi_reclamacoes',
+        frequente: 'kpi_problema'
+    };
+    const elementoKpi = document.getElementById(idsKpi[alerta.indicador]);
+    const cartaoKpi = elementoKpi && elementoKpi.closest('.cartao_indicador');
+
+    if (cartaoKpi) {
+        cartaoKpi.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        cartaoKpi.classList.remove('alerta_destacado');
+        void cartaoKpi.offsetWidth;
+        cartaoKpi.classList.add('alerta_destacado');
+        window.setTimeout(function () {
+            cartaoKpi.classList.remove('alerta_destacado');
+        }, 2400);
+    }
 }
 
 async function verificarAlertasAtivos() {
@@ -373,16 +430,23 @@ function criarGrafico(id, tipo, dados, opcoes = {}) {
 function renderizarPainelDestinos(dados, filtro) {
     atualizarRotulosDePeriodo('destinos', filtro);
     const estados = dados.porEstado || [];
-    const totais = dados.totais || {};
     const periodo = obterTextoDoPeriodo(filtro);
 
-    const topTres = estados.slice(0, 3);
-    definirTexto('kpi_destinos_titulo', 'Destinos mais procurados');
-    definirTexto('kpi_destinos_valor', topTres.length
-        ? topTres.map(function (estado, indice) {
-            return `${indice + 1}º ${estado.uf} (${formatarQuantidade(estado.passageiros)})`;
-        }).join(' · ')
-        : 'Sem dados para este filtro');
+    const topCinco = estados.slice(0, 5);
+    const periodoKpi = obterRotuloCurtoDoPeriodo(filtro).replace(/ - /g, '/');
+    definirTexto('kpi_destinos_titulo', `TOP 5 Destinos ${periodoKpi}`);
+    const rankingDestinos = document.getElementById('kpi_destinos_valor');
+    rankingDestinos.replaceChildren();
+    if (topCinco.length) {
+        topCinco.forEach(function (estado, indice) {
+            const linha = document.createElement('span');
+            linha.textContent =
+                `${indice + 1}º ${estado.estado || estado.uf} (${estado.uf}) - ${formatarQuantidade(estado.passageiros)} passageiros`;
+            rankingDestinos.appendChild(linha);
+        });
+    } else {
+        rankingDestinos.textContent = 'Sem dados para este filtro';
+    }
 
     const destaque = estados[0];
     definirTexto('kpi_estado_destaque', destaque ? destaque.estado || destaque.uf : 'Sem dados');
@@ -390,16 +454,37 @@ function renderizarPainelDestinos(dados, filtro) {
         ? `${formatarQuantidade(destaque.passageiros)} passageiros no período`
         : 'Nenhum voo para este filtro');
 
-    definirTexto('kpi_faturamento', formatarReais(totais.faturamentoEstimado));
-    const ocupacao = totais.taxaOcupacao === null || totais.taxaOcupacao === undefined
-        ? null
-        : `${totais.taxaOcupacao.toFixed(1).replace('.', ',')}% de ocupação`;
-    definirTexto('kpi_faturamento_detalhe', [
-        `${formatarQuantidade(totais.passageiros)} passageiros`,
-        `R$ ${totais.precoMedioPassagem} por passagem`,
-        ocupacao,
-        periodo
-    ].filter(Boolean).join(' · '));
+    const internacionais = (dados.porEstadoInternacional || []).slice(0, 5);
+    const rankingInternacionais = document.getElementById('kpi_internacionais_valor');
+    rankingInternacionais.replaceChildren();
+    if (internacionais.length) {
+        internacionais.forEach(function (estado, indice) {
+            const linha = document.createElement('span');
+            linha.className = 'linha_ranking_internacional';
+            const texto = document.createElement('span');
+            const crescimento = estado.crescimentoNovo
+                ? 'novo'
+                : estado.crescimentoPercentual === null
+                    ? 'sem comparação'
+                    : `${estado.crescimentoPercentual > 0 ? '+' : ''}${estado.crescimentoPercentual.toFixed(1).replace('.', ',')}%`;
+            texto.textContent =
+                `${indice + 1}º ${estado.estado || estado.uf} (${estado.uf}) — ${formatarQuantidade(estado.passageiros)} viajantes (${crescimento})`;
+            linha.appendChild(texto);
+
+            if (estado.crescimentoNovo || Number(estado.crescimentoPercentual) > 0) {
+                const seta = document.createElement('span');
+                seta.className = 'seta_crescimento';
+                seta.textContent = '↑';
+                seta.setAttribute('aria-hidden', 'true');
+                linha.appendChild(seta);
+            }
+
+            rankingInternacionais.appendChild(linha);
+        });
+    } else {
+        rankingInternacionais.textContent = 'Sem dados internacionais para este filtro';
+    }
+    definirTexto('kpi_internacionais_detalhe', 'Crescimento em relação ao mês anterior');
 
     const contexto = [];
     const estadosSelecionados = filtro ? obterEstadosSelecionados(filtro) : [];
@@ -444,24 +529,107 @@ function renderizarPainelDestinos(dados, filtro) {
         }
     });
 
-    const companhias = dados.porCompanhia || [];
-    criarGrafico('grafico_origem_bahia', 'doughnut', {
+    const companhias = (dados.porCompanhia || [])
+        .slice()
+        .sort(function (a, b) {
+            return Number(b.passageiros || 0) - Number(a.passageiros || 0);
+        })
+        .slice(0, 6);
+    criarGrafico('grafico_origem_bahia', 'bar', {
         labels: companhias.map(function (item) { return item.companhia; }),
         datasets: [{
+            label: 'Passageiros',
             data: companhias.map(function (item) { return Number(item.passageiros); }),
-            backgroundColor: companhias.map(function (item, indice) {
-                return paleta[indice % paleta.length];
-            }),
-            borderColor: '#f5f6fa',
-            borderWidth: 3
+            backgroundColor: cores.marinho,
+            borderRadius: 5,
+            maxBarThickness: 28
         }]
     }, {
-        cutout: '58%',
-        scales: { x: { display: false }, y: { display: false } },
-        plugins: { legend: { position: 'bottom' } }
+        indexAxis: 'y',
+        scales: {
+            x: {
+                beginAtZero: true,
+                grid: { color: '#e3e7ef' },
+                ticks: {
+                    color: cores.cinza,
+                    callback: function (valor) {
+                        return formatarQuantidade(valor);
+                    }
+                }
+            },
+            y: {
+                grid: { display: false },
+                ticks: { color: cores.cinza, autoSkip: false }
+            }
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function (contextoTooltip) {
+                        return `${formatarQuantidade(contextoTooltip.raw)} passageiros`;
+                    }
+                }
+            }
+        }
     });
 
     desenharMapa(estados, filtro);
+}
+
+function obterDadosCompanhiasSelecionadas(linhas, selecionadas, valoresPadrao) {
+    return selecionadas.map(function (idCompanhia) {
+        const nome = obterNomeCompanhia(idCompanhia);
+        let linha = linhas.find(function (item) {
+            return String(item.idCompanhia) === String(idCompanhia);
+        });
+
+        if (!linha) {
+            linha = linhas.find(function (item) {
+                return item.companhia === nome;
+            });
+        }
+
+        return Object.assign(
+            { idCompanhia: idCompanhia, companhia: nome },
+            valoresPadrao,
+            linha || {}
+        );
+    });
+}
+
+function renderizarKpiPorCompanhia(idValor, idDetalhe, idLista, companhias, obterValor, obterDetalhe) {
+    const valor = document.getElementById(idValor);
+    const detalhe = document.getElementById(idDetalhe);
+    const lista = document.getElementById(idLista);
+    const individualizado = companhias.length > 0;
+
+    valor.hidden = individualizado;
+    detalhe.hidden = individualizado;
+    lista.hidden = !individualizado;
+    lista.replaceChildren();
+
+    if (!individualizado) {
+        return;
+    }
+
+    companhias.forEach(function (companhia) {
+        const item = document.createElement('div');
+        item.className = 'item_kpi_companhia';
+
+        const nome = document.createElement('span');
+        nome.className = 'badge_kpi_companhia';
+        nome.textContent = companhia.companhia;
+
+        const resultado = document.createElement('strong');
+        resultado.textContent = obterValor(companhia);
+
+        const descricao = document.createElement('small');
+        descricao.textContent = obterDetalhe(companhia);
+
+        item.append(nome, resultado, descricao);
+        lista.appendChild(item);
+    });
 }
 
 function renderizarPainelCompanhias(dados, filtro) {
@@ -470,41 +638,152 @@ function renderizarPainelCompanhias(dados, filtro) {
     const problemas = dados.porProblema || [];
     const companhias = dados.porCompanhia || [];
     const volume = dados.volumePorCompanhia || [];
+    const problemasPorCompanhia = dados.problemasPorCompanhia || [];
     const periodo = obterTextoDoPeriodo(filtro);
+    const companhiasSelecionadas = filtro ? obterCompanhiasSelecionadas(filtro) : [];
+    const companhiasParaKpi = obterDadosCompanhiasSelecionadas(companhias, companhiasSelecionadas, {
+        reclamacoes: 0,
+        resolvidas: 0,
+        nao_resolvidas: 0,
+        nota_media: null
+    });
+    const companhiasParaVolume = obterDadosCompanhiasSelecionadas(volume, companhiasSelecionadas, {
+        passageiros: 0,
+        assentos: 0
+    });
 
-    definirTexto('kpi_avaliacao', totais.notaMedia
-        ? `${totais.notaMedia.toFixed(1).replace('.', ',')}/5`
-        : '—');
-    definirTexto('kpi_avaliacao_detalhe', totais.notaMedia
-        ? `nota média do consumidor · ${periodo}`
-        : `sem notas atribuídas · ${periodo}`);
+    companhiasParaKpi.forEach(function (companhia) {
+        const problemasDaCompanhia = problemasPorCompanhia.filter(function (item) {
+            if (item.idCompanhia !== undefined && companhia.idCompanhia !== undefined) {
+                return String(item.idCompanhia) === String(companhia.idCompanhia);
+            }
+            return item.companhia === companhia.companhia;
+        });
+        companhia.problemaMaisFrequente = problemasDaCompanhia.reduce(function (maisFrequente, item) {
+            return !maisFrequente || Number(item.quantidade) > Number(maisFrequente.quantidade)
+                ? item
+                : maisFrequente;
+        }, null);
+    });
 
-    definirTexto('kpi_resolucao', totais.taxaResolucao === null || totais.taxaResolucao === undefined
-        ? '—'
-        : `${Math.round(totais.taxaResolucao)}%`);
-    definirTexto('kpi_resolucao_detalhe', totais.avaliadas
-        ? `${formatarQuantidade(totais.resolvidas)} de ${formatarQuantidade(totais.avaliadas)} reclamações avaliadas`
-        : 'Nenhuma reclamação avaliada neste período');
+    const resumoCompanhias = companhiasSelecionadas.length === 1
+        ? obterNomeCompanhia(companhiasSelecionadas[0])
+        : companhiasSelecionadas.length
+            ? `${companhiasSelecionadas.length} companhias selecionadas`
+            : 'Todas as companhias';
 
-    definirTexto('kpi_reclamacoes', formatarQuantidade(totais.reclamacoes));
+    definirTexto('titulo_kpi_avaliacao', `Avaliação média - ${resumoCompanhias}`);
+    definirTexto('kpi_avaliacao', companhiasSelecionadas.length
+        ? 'Comparação por companhia'
+        : totais.notaMedia !== null && totais.notaMedia !== undefined
+            ? `${Number(totais.notaMedia).toFixed(1).replace('.', ',')}/5`
+            : '—');
+    definirTexto('kpi_avaliacao_detalhe', companhiasSelecionadas.length
+        ? 'Métricas individuais exibidas abaixo'
+        : totais.notaMedia !== null && totais.notaMedia !== undefined
+            ? `nota média do consumidor · ${periodo}`
+            : `sem notas atribuídas · ${periodo}`);
+    renderizarKpiPorCompanhia(
+        'kpi_avaliacao',
+        'kpi_avaliacao_detalhe',
+        'kpi_avaliacao_lista',
+        companhiasParaKpi,
+        function (companhia) {
+            return companhia.nota_media === null || companhia.nota_media === undefined
+                ? 'Sem dados'
+                : `${Number(companhia.nota_media).toFixed(1).replace('.', ',')}/5`;
+        },
+        function (companhia) {
+            return companhia.nota_media === null || companhia.nota_media === undefined
+                ? 'Sem avaliações'
+                : `Média · ${periodo}`;
+        }
+    );
+
+    definirTexto('titulo_kpi_resolucao', `Taxa de resolução - ${resumoCompanhias}`);
+    definirTexto('kpi_resolucao', companhiasSelecionadas.length
+        ? 'Comparação por companhia'
+        : totais.taxaResolucao === null || totais.taxaResolucao === undefined
+            ? '—'
+            : `${Math.round(totais.taxaResolucao)}%`);
+    definirTexto('kpi_resolucao_detalhe', companhiasSelecionadas.length
+        ? 'Métricas individuais exibidas abaixo'
+        : totais.avaliadas
+            ? `${formatarQuantidade(totais.resolvidas)} de ${formatarQuantidade(totais.avaliadas)} reclamações avaliadas`
+            : 'Nenhuma reclamação avaliada neste período');
+    renderizarKpiPorCompanhia(
+        'kpi_resolucao',
+        'kpi_resolucao_detalhe',
+        'kpi_resolucao_lista',
+        companhiasParaKpi,
+        function (companhia) {
+            const avaliadas = Number(companhia.resolvidas || 0) + Number(companhia.nao_resolvidas || 0);
+            return avaliadas > 0
+                ? `${Math.round((Number(companhia.resolvidas || 0) / avaliadas) * 100)}%`
+                : 'Sem dados';
+        },
+        function (companhia) {
+            const resolvidas = Number(companhia.resolvidas || 0);
+            const avaliadas = resolvidas + Number(companhia.nao_resolvidas || 0);
+            return avaliadas > 0
+                ? `${formatarQuantidade(resolvidas)} de ${formatarQuantidade(avaliadas)} avaliadas`
+                : 'Sem reclamações avaliadas';
+        }
+    );
+
+    definirTexto('titulo_kpi_reclamacoes', `Total de reclamações - ${resumoCompanhias}`);
+    definirTexto('kpi_reclamacoes', companhiasSelecionadas.length
+        ? 'Comparação por companhia'
+        : formatarQuantidade(totais.reclamacoes));
     definirTexto('kpi_reclamacoes_detalhe', `registradas · ${periodo}`);
+    renderizarKpiPorCompanhia(
+        'kpi_reclamacoes',
+        'kpi_reclamacoes_detalhe',
+        'kpi_reclamacoes_lista',
+        companhiasParaKpi,
+        function (companhia) {
+            return formatarQuantidade(companhia.reclamacoes);
+        },
+        function () {
+            return `registradas · ${periodo}`;
+        }
+    );
 
     const problemaTopo = problemas[0];
-    definirTexto('kpi_problema', problemaTopo ? problemaTopo.problema : 'Sem dados');
+    definirTexto('titulo_kpi_problema', `Problema mais frequente - ${resumoCompanhias}`);
+    definirTexto('kpi_problema', companhiasSelecionadas.length
+        ? 'Comparação por companhia'
+        : problemaTopo ? problemaTopo.problema : 'Sem dados');
     definirTexto('kpi_problema_detalhe', problemaTopo
         ? `${formatarQuantidade(problemaTopo.quantidade)} reclamações`
         : 'Nenhuma reclamação para este filtro');
+    renderizarKpiPorCompanhia(
+        'kpi_problema',
+        'kpi_problema_detalhe',
+        'kpi_problema_lista',
+        companhiasParaKpi,
+        function (companhia) {
+            return companhia.problemaMaisFrequente
+                ? companhia.problemaMaisFrequente.problema
+                : 'Sem dados';
+        },
+        function (companhia) {
+            return companhia.problemaMaisFrequente
+                ? `${formatarQuantidade(companhia.problemaMaisFrequente.quantidade)} reclamações`
+                : 'Nenhuma reclamação';
+        }
+    );
 
     const contexto = [];
-    if (filtro && filtro.estado && filtro.estado !== 'TODOS') {
-        contexto.push(obterNomeEstado(filtro.estado));
+    const estadosSelecionados = filtro ? obterEstadosSelecionados(filtro) : [];
+    if (estadosSelecionados.length) {
+        contexto.push(estadosSelecionados.map(obterNomeEstado).join(', '));
     }
-    const companhiasSelecionadas = filtro ? obterCompanhiasSelecionadas(filtro) : [];
     if (companhiasSelecionadas.length) {
         contexto.push(companhiasSelecionadas.map(obterNomeCompanhia).join(', '));
     }
-    if (filtro && filtro.problema && filtro.problema !== 'TODOS') {
-        contexto.push(filtro.problema);
+    if (filtro && Array.isArray(filtro.problemas) && filtro.problemas.length) {
+        contexto.push(filtro.problemas.join(', '));
     }
     if (filtro) {
         contexto.push(periodo);
@@ -519,13 +798,38 @@ function renderizarPainelCompanhias(dados, filtro) {
         return;
     }
 
+    const totalProblemas = problemas.reduce(function (total, item) {
+        return total + Number(item.quantidade || 0);
+    }, 0);
+    const problemasParaGrafico = [];
+    let quantidadeOutros = 0;
+
+    problemas.forEach(function (item) {
+        const quantidade = Number(item.quantidade || 0);
+        if (item.problema === 'Outros' || (totalProblemas > 0 && quantidade < totalProblemas * 0.05)) {
+            quantidadeOutros += quantidade;
+        } else {
+            problemasParaGrafico.push({
+                problema: item.problema,
+                quantidade: quantidade
+            });
+        }
+    });
+
+    if (quantidadeOutros > 0) {
+        problemasParaGrafico.push({
+            problema: 'Outros',
+            quantidade: quantidadeOutros
+        });
+    }
+
     criarGrafico('grafico_problemas', 'pie', {
-        labels: problemas.map(function (item) { return item.problema; }),
+        labels: problemasParaGrafico.map(function (item) { return item.problema; }),
         datasets: [{
             label: 'Reclamações',
-            data: problemas.map(function (item) { return Number(item.quantidade); }),
-            backgroundColor: problemas.map(function (item, indice) {
-                return paleta[indice % paleta.length];
+            data: problemasParaGrafico.map(function (item) { return item.quantidade; }),
+            backgroundColor: problemasParaGrafico.map(function (item, indice) {
+                return item.problema === 'Outros' ? '#b9bfd0' : paleta[indice % paleta.length];
             }),
             borderColor: '#f5f6fa',
             borderWidth: 3
@@ -535,11 +839,12 @@ function renderizarPainelCompanhias(dados, filtro) {
         plugins: { legend: { position: 'bottom' } }
     });
 
+    const volumeParaGrafico = companhiasSelecionadas.length ? companhiasParaVolume : volume;
     criarGrafico('grafico_assentos', 'bar', {
-        labels: volume.map(function (item) { return item.companhia; }),
+        labels: volumeParaGrafico.map(function (item) { return item.companhia; }),
         datasets: [{
             label: 'Passageiros',
-            data: volume.map(function (item) { return Number(item.passageiros); }),
+            data: volumeParaGrafico.map(function (item) { return Number(item.passageiros || 0); }),
             backgroundColor: cores.marinho,
             borderRadius: 5,
             maxBarThickness: 42
@@ -553,27 +858,27 @@ function renderizarPainelCompanhias(dados, filtro) {
         }
     });
 
-    const comAvaliacao = companhias.filter(function (item) {
-        return Number(item.resolvidas) + Number(item.nao_resolvidas) > 0;
-    });
+    const companhiasParaGraficoResolucao = companhiasSelecionadas.length ? companhiasParaKpi : companhias;
 
     criarGrafico('grafico_resolucao', 'bar', {
-        labels: comAvaliacao.map(function (item) { return item.companhia; }),
+        labels: companhiasParaGraficoResolucao.map(function (item) { return item.companhia; }),
         datasets: [
             {
                 label: 'Resolvido (%)',
-                data: comAvaliacao.map(function (item) {
-                    const avaliadas = Number(item.resolvidas) + Number(item.nao_resolvidas);
-                    return (Number(item.resolvidas) / avaliadas) * 100;
+                data: companhiasParaGraficoResolucao.map(function (item) {
+                    const resolvidas = Number(item.resolvidas || 0);
+                    const avaliadas = resolvidas + Number(item.nao_resolvidas || 0);
+                    return avaliadas > 0 ? (resolvidas / avaliadas) * 100 : 0;
                 }),
                 backgroundColor: cores.azul,
                 borderRadius: 4
             },
             {
                 label: 'Não resolvido (%)',
-                data: comAvaliacao.map(function (item) {
-                    const avaliadas = Number(item.resolvidas) + Number(item.nao_resolvidas);
-                    return (Number(item.nao_resolvidas) / avaliadas) * 100;
+                data: companhiasParaGraficoResolucao.map(function (item) {
+                    const naoResolvidas = Number(item.nao_resolvidas || 0);
+                    const avaliadas = Number(item.resolvidas || 0) + naoResolvidas;
+                    return avaliadas > 0 ? (naoResolvidas / avaliadas) * 100 : 0;
                 }),
                 backgroundColor: '#b9bfd0',
                 borderRadius: 4
@@ -712,12 +1017,18 @@ function normalizarFiltro(filtro, tipoPainel) {
         ? filtro.companhias
         : (filtro.companhia && filtro.companhia !== 'TODAS' ? [filtro.companhia] : []);
     filtro.companhia = filtro.companhias.length === 1 ? filtro.companhias[0] : 'TODAS';
-    filtro.problema = filtro.problema || 'TODOS';
+    const problemas = Array.isArray(filtro.problemas) && filtro.problemas.length
+        ? filtro.problemas
+        : (filtro.problema && filtro.problema !== 'TODOS' ? [filtro.problema] : []);
+    filtro.problemas = problemas.filter(function (problema, indice, lista) {
+        return problema && problema !== 'TODOS' && lista.indexOf(problema) === indice;
+    });
+    filtro.problema = filtro.problemas.length === 1 ? filtro.problemas[0] : 'TODOS';
     filtro.dataInicial = filtro.dataInicial || '';
     filtro.dataFinal = filtro.dataFinal || '';
     if (filtro.dataInicial === '2025-01-01' && filtro.dataFinal === '2025-12-31') {
-        filtro.dataInicial = '2025-10-01';
-        filtro.dataFinal = '2025-10-31';
+        filtro.dataInicial = '2025-11-01';
+        filtro.dataFinal = '2025-11-30';
     }
     filtro.nomeEstado = obterNomeEstado(filtro.estado);
 
@@ -779,7 +1090,7 @@ function mostrarFiltrosSalvos() {
             partes.push(filtro.companhias.length
                 ? filtro.companhias.map(obterNomeCompanhia).join(', ')
                 : obterNomeCompanhia(filtro.companhia));
-            partes.push(filtro.problema === 'TODOS' ? 'Todos os problemas' : filtro.problema);
+            partes.push(filtro.problemas.length ? filtro.problemas.join(', ') : 'Todos os problemas');
         }
         partes.push(obterTextoDoPeriodo(filtro));
 
@@ -871,7 +1182,7 @@ function selecionarPainel(tipoPainel) {
     document.getElementById('botao_criar_filtro').href = `filtros_criacao.html?tipo=${painelEscolhido}`;
     sessionStorage.PAINEL_DASHBOARD = painelEscolhido;
     mostrarFiltroAtivo(painelEscolhido);
-    renderizarGraficos();
+    return renderizarGraficos();
 }
 
 function definirTipoUsuario() {
@@ -983,6 +1294,13 @@ async function gerarRelatorioPDF() {
 
 function configurarEventos() {
     document.getElementById('fechar_popup_alerta').addEventListener('click', mostrarProximoAlerta);
+    document.getElementById('abrir_popup_alerta').addEventListener('click', abrirAlertaNaDashboard);
+    document.getElementById('abrir_popup_alerta').addEventListener('keydown', function (evento) {
+        if (evento.key === 'Enter' || evento.key === ' ') {
+            evento.preventDefault();
+            abrirAlertaNaDashboard();
+        }
+    });
 
     document.querySelectorAll('.opcao_dashboard').forEach(function (botao) {
         botao.addEventListener('click', function () {

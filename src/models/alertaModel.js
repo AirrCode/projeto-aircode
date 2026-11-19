@@ -200,6 +200,14 @@ function comparar(valor, operador, limite) {
 }
 
 async function avaliarAncora(ancora, filtro) {
+    if (ancora.indicador_alvo === "internacionais") {
+        const painel = await dashboardModel.obterPainelDestinos(filtro);
+        const posicao = (painel.porEstadoInternacional || []).findIndex(function (estado) {
+            return estado.uf === ancora.estado;
+        }) + 1;
+        return posicao > 0 && posicao <= Number(ancora.posicao_top);
+    }
+
     if (ancora.indicador_alvo === "destinos" || ancora.indicador_alvo === "destaque") {
         const painel = await dashboardModel.obterPainelDestinos(filtro);
         const posicao = painel.porEstado.findIndex(function (estado) {
@@ -254,14 +262,28 @@ async function avaliarAlertas(idUsuario) {
     for (const alerta of alertas) {
         const filtro = alerta.filtro_json ? JSON.parse(alerta.filtro_json) : {};
         const atingido = await avaliarAncora(alerta, filtro);
+
         if (atingido && !alerta.ja_disparado) {
-            disparados.push({
+            const dataHora = new Date().toLocaleString("pt-BR", {
+                timeZone: "America/Sao_Paulo"
+            });
+
+            const payloadDisparo = {
                 id: alerta.id_alerta,
                 nome: alerta.nome_alerta,
                 ancora: alerta.nome_ancora,
-                mensagem: alerta.mensagem_alerta
-            });
+                mensagem: alerta.mensagem_alerta,
+                dataHora: dataHora,
+                filtro: alerta.filtro_json ? filtro : null,
+                indicador: alerta.indicador_alvo
+            };
+
+            disparados.push(payloadDisparo);
+
+            // Dispara para a API Java -> Webhook Slack
+            await enviarParaApiJava(payloadDisparo);
         }
+
         await database.executar(
             "UPDATE alerta_dashboard SET ja_disparado = ? WHERE id_alerta = ? AND id_usuario = ?;",
             [atingido, alerta.id_alerta, idUsuario]
@@ -269,6 +291,25 @@ async function avaliarAlertas(idUsuario) {
     }
 
     return disparados;
+}
+
+    const URL_API_NOTIFICACAO = process.env.NOTIFICACAO_JAVA_URL || "http://localhost:8080/notificar";
+
+async function enviarParaApiJava(alertaDisparado) {
+    try {
+        const resposta = await fetch(URL_API_NOTIFICACAO, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(alertaDisparado)
+        });
+
+        if (!resposta.ok) {
+            const detalhe = await resposta.text();
+            console.error("API Java retornou erro:", resposta.status, detalhe);
+        }
+    } catch (erro) {
+        console.error("Falha ao conectar com NotificacaoAircode (Java):", erro.message);
+    }
 }
 
 module.exports = {

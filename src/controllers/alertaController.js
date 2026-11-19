@@ -42,17 +42,20 @@ function obterAncora(req, res) {
 function salvarAncora(req, res) {
     const idUsuario = lerIdUsuario(req);
     const { nome, indicador, estado, posicao, valor, operador } = req.body;
-    const indicadores = ["destinos", "destaque", "faturamento", "avaliacao", "resolucao", "reclamacao", "frequente"];
+    const indicadores = ["destinos", "destaque", "faturamento", "internacionais", "avaliacao", "resolucao", "reclamacao", "frequente"];
+    const indicadoresRanking = ["destinos", "destaque", "internacionais"];
+    const limitePosicao = indicador === "destaque" ? 3 : 5;
     const posicaoTop = Number(posicao);
     const valorAlvo = valor === "" || valor === null || valor === undefined ? null : Number(valor);
 
     if (!idUsuario) return res.status(400).json({ mensagem: "Usuário inválido." });
     if (!validarNome(nome)) return res.status(400).json({ mensagem: "Informe um nome para a âncora (até 100 caracteres)." });
     if (!indicadores.includes(indicador)) return res.status(400).json({ mensagem: "Selecione um indicador válido." });
-    if ((indicador === "destinos" || indicador === "destaque") && (!/^[A-Z]{2}$/.test(estado) || posicaoTop < 1 || posicaoTop > 3)) {
-        return res.status(400).json({ mensagem: "Selecione um estado e uma posição entre 1 e 3." });
+    if (indicadoresRanking.includes(indicador)
+        && (!/^[A-Z]{2}$/.test(estado) || !Number.isInteger(posicaoTop) || posicaoTop < 1 || posicaoTop > limitePosicao)) {
+        return res.status(400).json({ mensagem: `Selecione um estado e uma posição entre 1 e ${limitePosicao}.` });
     }
-    if (indicador !== "destinos" && indicador !== "destaque" && (!Number.isFinite(valorAlvo) || ![">", ">=", "<", "<=", "="].includes(operador))) {
+    if (!indicadoresRanking.includes(indicador) && (!Number.isFinite(valorAlvo) || ![">", ">=", "<", "<=", "="].includes(operador))) {
         return res.status(400).json({ mensagem: "Informe um valor alvo e um comparador válidos." });
     }
     if ((indicador === "avaliacao" && (valorAlvo < 0 || valorAlvo > 5))
@@ -65,9 +68,9 @@ function salvarAncora(req, res) {
         id: req.body.id || null,
         nome: nome.trim(),
         indicador,
-        estado: indicador === "destinos" || indicador === "destaque" ? estado : null,
-        posicao: indicador === "destinos" || indicador === "destaque" ? posicaoTop : null,
-        valor: indicador === "destinos" || indicador === "destaque" ? null : valorAlvo,
+        estado: indicadoresRanking.includes(indicador) ? estado : null,
+        posicao: indicadoresRanking.includes(indicador) ? posicaoTop : null,
+        valor: indicadoresRanking.includes(indicador) ? null : valorAlvo,
         operador: operador || ">="
     })
         .then(id => res.status(200).json({ id: id, mensagem: "Âncora salva." }))
