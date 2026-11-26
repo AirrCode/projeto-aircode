@@ -314,7 +314,7 @@ async function obterPainelDestinos(filtro) {
     const principaisAeroportos = `
         SELECT destino.nome_aeroporto AS aeroporto,
                destino.uf AS uf,
-               SUM(v.passageiros_pagos) AS passageiros
+               SUM(v.passageiros_pagos + v.passageiros_gratis) AS passageiros
         FROM voo_mensal v
         JOIN rota r ON r.id_rota = v.id_rota
         JOIN aeroporto destino ON destino.id_aeroporto = r.id_aeroporto_destino
@@ -322,7 +322,7 @@ async function obterPainelDestinos(filtro) {
         WHERE destino.uf IS NOT NULL ${condicao.sql}
         GROUP BY destino.nome_aeroporto, destino.uf
         ORDER BY passageiros DESC
-        LIMIT 8;
+        LIMIT 5;
     `;
 
     const totais = `
@@ -396,12 +396,18 @@ async function obterPainelDestinos(filtro) {
             };
         })
         .sort(function (a, b) {
-            if (a.crescimentoNovo !== b.crescimentoNovo) {
-                return a.crescimentoNovo ? -1 : 1;
-            }
             if (a.crescimentoPercentual !== null && b.crescimentoPercentual !== null
                 && a.crescimentoPercentual !== b.crescimentoPercentual) {
                 return b.crescimentoPercentual - a.crescimentoPercentual;
+            }
+            if (a.crescimentoPercentual !== null && b.crescimentoPercentual === null) {
+                return -1;
+            }
+            if (a.crescimentoPercentual === null && b.crescimentoPercentual !== null) {
+                return 1;
+            }
+            if (a.crescimentoNovo !== b.crescimentoNovo) {
+                return a.crescimentoNovo ? -1 : 1;
             }
             return b.passageiros - a.passageiros;
         });

@@ -24,6 +24,17 @@ function formatarQuantidade(numero) {
     return valor.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
 }
 
+function formatarQuantidadeMil(numero) {
+    const valor = Number(numero || 0);
+    if (valor >= 1000) {
+        return `${(valor / 1000).toLocaleString('pt-BR', {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1
+        })} mil`;
+    }
+    return valor.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+}
+
 function definirTexto(id, texto) {
     const elemento = document.getElementById(id);
     if (elemento) {
@@ -432,59 +443,71 @@ function renderizarPainelDestinos(dados, filtro) {
     const estados = dados.porEstado || [];
     const periodo = obterTextoDoPeriodo(filtro);
 
-    const topCinco = estados.slice(0, 5);
-    const periodoKpi = obterRotuloCurtoDoPeriodo(filtro).replace(/ - /g, '/');
-    definirTexto('kpi_destinos_titulo', `TOP 5 Destinos ${periodoKpi}`);
-    const rankingDestinos = document.getElementById('kpi_destinos_valor');
-    rankingDestinos.replaceChildren();
-    if (topCinco.length) {
-        topCinco.forEach(function (estado, indice) {
-            const linha = document.createElement('span');
-            linha.textContent =
-                `${indice + 1}º ${estado.estado || estado.uf} (${estado.uf}) - ${formatarQuantidade(estado.passageiros)} passageiros`;
-            rankingDestinos.appendChild(linha);
+    const topEstado = estados[0];
+    definirTexto('kpi_destinos_titulo', '1º lugar');
+    definirTexto(
+        'kpi_destinos_valor',
+        topEstado ? formatarQuantidadeMil(topEstado.passageiros) : 'Sem dados'
+    );
+    definirTexto('kpi_destinos_detalhe', topEstado ? 'Passageiros' : '');
+    definirTexto(
+        'kpi_destinos_estado',
+        topEstado ? `${topEstado.estado || topEstado.uf} (${topEstado.uf})` : 'Nenhum voo no período'
+    );
+
+    const internacionais = dados.porEstadoInternacional || [];
+    const destaque = internacionais[0];
+
+    let crescimento = 'Sem dados';
+    if (destaque) {
+        if (destaque.crescimentoNovo) {
+            crescimento = 'Novo';
+        } else if (destaque.crescimentoPercentual !== null) {
+            crescimento = `${destaque.crescimentoPercentual > 0 ? '+' : ''}${destaque.crescimentoPercentual.toFixed(1).replace('.', ',')}%`;
+        }
+    }
+    definirTexto('kpi_estado_destaque', crescimento);
+    definirTexto('kpi_estado_destaque_detalhe', 'Maior crescimento');
+    definirTexto(
+        'kpi_estado_destaque_estado',
+        destaque ? `${destaque.estado || destaque.uf} (${destaque.uf})` : 'Nenhum dado internacional'
+    );
+
+    definirTexto(
+        'kpi_internacionais_valor',
+        destaque ? formatarQuantidade(destaque.passageiros) : 'Sem dados'
+    );
+    definirTexto('kpi_internacionais_detalhe', destaque ? 'Viajantes' : '');
+    definirTexto(
+        'kpi_internacionais_estado',
+        destaque ? `${destaque.estado || destaque.uf} (${destaque.uf})` : 'Nenhum dado internacional'
+    );
+
+    const tabelaTopDestinos = document.getElementById('tabela_top_destinos_corpo');
+    tabelaTopDestinos.replaceChildren();
+    const topDestinos = (dados.principaisAeroportos || []).slice(0, 5);
+    if (topDestinos.length) {
+        topDestinos.forEach(function (destino, indice) {
+            const linha = document.createElement('tr');
+            const posicao = document.createElement('td');
+            const nome = document.createElement('td');
+            const passageiros = document.createElement('td');
+
+            posicao.textContent = `${indice + 1}º`;
+            nome.textContent = `${destino.aeroporto || destino.uf} (${destino.uf})`;
+            passageiros.textContent = formatarQuantidade(destino.passageiros);
+
+            linha.append(posicao, nome, passageiros);
+            tabelaTopDestinos.appendChild(linha);
         });
     } else {
-        rankingDestinos.textContent = 'Sem dados para este filtro';
+        const linha = document.createElement('tr');
+        const mensagem = document.createElement('td');
+        mensagem.colSpan = 3;
+        mensagem.textContent = 'Sem dados para este filtro';
+        linha.appendChild(mensagem);
+        tabelaTopDestinos.appendChild(linha);
     }
-
-    const destaque = estados[0];
-    definirTexto('kpi_estado_destaque', destaque ? destaque.estado || destaque.uf : 'Sem dados');
-    definirTexto('kpi_estado_destaque_detalhe', destaque
-        ? `${formatarQuantidade(destaque.passageiros)} passageiros no período`
-        : 'Nenhum voo para este filtro');
-
-    const internacionais = (dados.porEstadoInternacional || []).slice(0, 5);
-    const rankingInternacionais = document.getElementById('kpi_internacionais_valor');
-    rankingInternacionais.replaceChildren();
-    if (internacionais.length) {
-        internacionais.forEach(function (estado, indice) {
-            const linha = document.createElement('span');
-            linha.className = 'linha_ranking_internacional';
-            const texto = document.createElement('span');
-            const crescimento = estado.crescimentoNovo
-                ? 'novo'
-                : estado.crescimentoPercentual === null
-                    ? 'sem comparação'
-                    : `${estado.crescimentoPercentual > 0 ? '+' : ''}${estado.crescimentoPercentual.toFixed(1).replace('.', ',')}%`;
-            texto.textContent =
-                `${indice + 1}º ${estado.estado || estado.uf} (${estado.uf}) — ${formatarQuantidade(estado.passageiros)} viajantes (${crescimento})`;
-            linha.appendChild(texto);
-
-            if (estado.crescimentoNovo || Number(estado.crescimentoPercentual) > 0) {
-                const seta = document.createElement('span');
-                seta.className = 'seta_crescimento';
-                seta.textContent = '↑';
-                seta.setAttribute('aria-hidden', 'true');
-                linha.appendChild(seta);
-            }
-
-            rankingInternacionais.appendChild(linha);
-        });
-    } else {
-        rankingInternacionais.textContent = 'Sem dados internacionais para este filtro';
-    }
-    definirTexto('kpi_internacionais_detalhe', 'Crescimento em relação ao mês anterior');
 
     const contexto = [];
     const estadosSelecionados = filtro ? obterEstadosSelecionados(filtro) : [];

@@ -75,8 +75,9 @@
                     </div>
                     <div class="cartao_conteudo">
                         <strong id="kpi_destinos_valor" class="ranking_kpi ranking_kpi_destinos"></strong>
+                        <small id="kpi_destinos_detalhe"></small>
                     </div>
-                    <p class="periodo_kpi" data-periodo-kpi="destinos"></p>
+                    <p class="periodo_kpi" id="kpi_destinos_estado"></p>
                 </article>
 
                 <article class="cartao_indicador indicador_centralizado">
@@ -90,7 +91,7 @@
                         <strong id="kpi_estado_destaque"></strong>
                         <small id="kpi_estado_destaque_detalhe"></small>
                     </div>
-                    <p class="periodo_kpi" data-periodo-comparativo="destinos"></p>
+                    <p class="periodo_kpi" id="kpi_estado_destaque_estado"></p>
                 </article>
 
                 <article class="cartao_indicador cartao_ranking">
@@ -104,9 +105,27 @@
                         <strong id="kpi_internacionais_valor" class="ranking_kpi ranking_kpi_internacionais"></strong>
                         <small id="kpi_internacionais_detalhe"></small>
                     </div>
-                    <p class="periodo_kpi" data-periodo-kpi="destinos"></p>
+                    <p class="periodo_kpi" id="kpi_internacionais_estado"></p>
                 </article>
             </div>
+
+            <article class="cartao_grafico cartao_tabela_destinos" aria-labelledby="titulo_top_destinos">
+                <h2 id="titulo_top_destinos">Top 5 destinos com mais passageiros</h2>
+                <div class="tabela_destinos_scroll">
+                    <table class="tabela_top_destinos" aria-labelledby="titulo_top_destinos">
+                        <thead>
+                            <tr>
+                                <th scope="col">Posição</th>
+                                <th scope="col">Destino</th>
+                                <th scope="col">Passageiros</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela_top_destinos_corpo">
+                            <tr><td colspan="3">Carregando destinos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
 
             <div class="grade_graficos grade_graficos_destinos">
                 <article class="cartao_grafico">
