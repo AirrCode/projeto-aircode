@@ -600,6 +600,19 @@ h1 {
     text-align: center;
 }
 
+.grade_cartoes_destinos .cartao_indicador {
+    min-height: 190px;
+}
+
+.grade_cartoes_destinos .cartao_indicador strong {
+    font-size: clamp(28px, 3vw, 36px);
+    line-height: 1.15;
+}
+
+.grade_cartoes_destinos .cartao_indicador strong.ranking_kpi {
+    font-size: clamp(28px, 3vw, 36px) !important;
+}
+
 .fundo_popup_alerta {
     position: fixed;
     z-index: 1000;
@@ -778,6 +791,42 @@ h1 {
 .grade_graficos_companhias {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: 24px;
+}
+
+.cartao_tabela_destinos {
+    margin-top: 24px;
+}
+
+.tabela_destinos_scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tabela_top_destinos {
+    width: 100%;
+    border-collapse: collapse;
+    color: #0C1B4D;
+    text-align: left;
+}
+
+.tabela_top_destinos th,
+.tabela_top_destinos td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e8ebf2;
+}
+
+.tabela_top_destinos th {
+    background-color: #f7f8fb;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.tabela_top_destinos td {
+    font-size: 14px;
+}
+
+.tabela_top_destinos tbody tr:last-child td {
+    border-bottom: none;
 }
 
 .cartao_grafico {
